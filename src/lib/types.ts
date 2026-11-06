@@ -82,6 +82,15 @@ export interface ProfileData {
   water: Record<string, number>;
   checklist: Record<string, string[]>;
   weights: Record<string, number>;
+  // Pregnancy (optional so older saved data still loads)
+  kicks?: import("./pregnancyTypes").KickSession[];
+  bp?: import("./pregnancyTypes").BPReading[];
+  pregWeights?: Record<string, number>;
+  appointments?: import("./pregnancyTypes").Appointment[];
+  babyBook?: import("./pregnancyTypes").BabyBook;
+  birthPlan?: import("./pregnancyTypes").BirthPlan;
+  contractions?: import("./pregnancyTypes").ContractionLog[];
+  pregnancy?: import("./pregnancyTypes").PregnancyExtras;
   circle: CircleMember[];
   /** Lab reports, values in Saheli's units (see lib/labTests.ts). */
   reports?: LabReport[];

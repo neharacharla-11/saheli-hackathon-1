@@ -1,6 +1,7 @@
 import { addDays, todayISO } from "./dates";
 import { sampleByKey } from "./samples";
 import { sampleReports, sampleSymptomLogs } from "./sampleHealth";
+import { withPregnancySample } from "./pregnancySample";
 import { emptyProfileData } from "./store";
 import type { CircleMember, Profile, ProfileData } from "./types";
 
@@ -44,7 +45,7 @@ export function buildSample(key: string, today = todayISO()): ProfileData {
     createdAt: addDays(today, -180),
   };
 
-  return {
+  const data: ProfileData = {
     ...emptyProfileData(),
     profile,
     periodStarts,
@@ -53,6 +54,7 @@ export function buildSample(key: string, today = todayISO()): ProfileData {
     reports: sampleReports(key, today),
     dayLogs: sampleSymptomLogs(key, today, periodStarts, cycleLength, periodLength),
   };
+  return withPregnancySample(key, data, today);
 }
 
 const CIRCLES: Record<string, [string, string, string][]> = {
