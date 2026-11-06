@@ -111,6 +111,10 @@ export interface ProfileData {
   contractions?: import("./pregnancyTypes").ContractionLog[];
   pregnancy?: import("./pregnancyTypes").PregnancyExtras;
   circle: CircleMember[];
+  /** Her own medicines and supplements for the Checklist (name, dose, time). */
+  customSupplements?: CustomSupplement[];
+  /** Seconds the 10-second check-in took, by date. */
+  checkinSeconds?: Record<string, number>;
   /** Lab reports, values in Saheli's units (see lib/labTests.ts). */
   reports?: LabReport[];
   /** Let her coach see report values when she asks for a plan. */
@@ -250,4 +254,14 @@ export interface HealthImport {
   sleepMin?: Record<string, number>; // date -> minutes asleep
   weight?: Record<string, number>; // date -> kg
   importedAt?: string;
+}
+
+/* ---------- Checklist: her own medicines ---------- */
+
+export interface CustomSupplement {
+  id: string;
+  name: string; // e.g. "Iron + folic acid"
+  dose?: string; // e.g. "1 tablet"
+  when: string; // e.g. "After lunch"
+  time?: string; // "HH:mm" for reminders
 }

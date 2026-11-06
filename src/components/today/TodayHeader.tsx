@@ -1,6 +1,6 @@
 "use client";
 
-import { cycleDay, phaseForDay, PHASE_LABEL, PHASE_VAR } from "@/lib/cycle";
+import { cycleDay, learnedCycleLength, phaseForDay, PHASE_LABEL, PHASE_VAR } from "@/lib/cycle";
 import { formatLong, todayISO } from "@/lib/dates";
 import { STAGE_LABEL, useProfileStore } from "@/lib/store";
 
@@ -10,9 +10,10 @@ export function TodayHeader() {
   const today = todayISO();
   if (!profile) return null;
 
-  const usesCycle = !["pregnancy", "menopause"].includes(profile.stage);
-  const day = usesCycle ? cycleDay(periodStarts, today, profile.cycleLength) : null;
-  const phase = day ? phaseForDay(day, profile.cycleLength, profile.periodLength) : null;
+  const usesCycle = !["pregnancy", "postpartum", "menopause"].includes(profile.stage);
+  const L = learnedCycleLength(periodStarts, profile.cycleLength);
+  const day = usesCycle ? cycleDay(periodStarts, today, L) : null;
+  const phase = day ? phaseForDay(day, L, profile.periodLength) : null;
 
   return (
     <header className="mb-8 flex flex-wrap items-end justify-between gap-3">
@@ -26,7 +27,7 @@ export function TodayHeader() {
           style={{ background: phase ? PHASE_VAR[phase] : "var(--primary)" }}
           aria-hidden="true"
         />
-        {phase ? `${PHASE_LABEL[phase]} · day ${day}` : STAGE_LABEL[profile.stage]}
+        {phase ? PHASE_LABEL[phase] : STAGE_LABEL[profile.stage]}
       </span>
     </header>
   );

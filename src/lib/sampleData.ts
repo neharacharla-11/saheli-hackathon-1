@@ -6,6 +6,7 @@ import { defaultShares } from "./circle";
 import { withMindSample } from "./mindSample";
 import { withNourishSample } from "./nourishSample";
 import { withStageSample } from "./stageSample";
+import { withCycleSample } from "./cycleSample";
 import { emptyProfileData } from "./store";
 import type { CircleMember, Profile, ProfileData } from "./types";
 
@@ -59,8 +60,9 @@ export function buildSample(key: string, today = todayISO()): ProfileData {
     dayLogs: sampleSymptomLogs(key, today, periodStarts, cycleLength, periodLength),
   };
   // Nourish, Move and Companion: numbers, meals, steps, chat, coach plans (lib/nourishSample.ts)
+  // Today, Checklist and weight: weigh-ins, water, ticks, check-in streak, medicines (lib/cycleSample.ts)
   // My stage: fertility signs, baby care, menopause scores (lib/stageSample.ts)
-  return withStageSample(key, withMindSample(key, withNourishSample(key, withPregnancySample(key, data, today), today), today), today);
+  return withStageSample(key, withCycleSample(key, withMindSample(key, withNourishSample(key, withPregnancySample(key, data, today), today), today), today), today);
 }
 
 const CIRCLES: Record<string, [string, string, string][]> = {
