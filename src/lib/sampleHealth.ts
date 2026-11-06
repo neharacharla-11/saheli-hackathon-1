@@ -192,3 +192,41 @@ export function sampleSymptomLogs(
   }
   return logs;
 }
+
+/* ---------------- Sugar and body ---------------- */
+
+/** Farida: 2 weeks of fasting and after-meal readings, slowly improving. */
+export function sampleSugar(key: string, today: string): import("./types").SugarReading[] {
+  if (key !== "farida") return [];
+  const rand = rng(`${key}-sugar`);
+  const out: import("./types").SugarReading[] = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = addDays(today, -i);
+    const drift = i * 1.2; // a little higher two weeks ago
+    out.push({ id: `${key}-s${i}f`, at: `${d}T07:${String(10 + Math.floor(rand() * 30)).padStart(2, "0")}`, value: Math.round(118 + drift + rand() * 22), when: "fasting" });
+    if (i % 2 === 0 || i < 3) {
+      const v = Math.round(150 + drift + rand() * 45);
+      out.push({ id: `${key}-s${i}a`, at: `${d}T${i % 4 === 0 ? "14" : "21"}:${String(15 + Math.floor(rand() * 40)).padStart(2, "0")}`, value: v, when: "after" });
+    }
+  }
+  return out;
+}
+
+/** Rekha: body measurements every 2 weeks for 3 months, steady progress. */
+export function sampleMeasures(key: string, today: string): import("./types").Measure[] {
+  if (key !== "rekha") return [];
+  const out: import("./types").Measure[] = [];
+  for (let n = 0; n < 7; n++) {
+    const step = 6 - n; // oldest first
+    out.push({
+      id: `${key}-m${n}`,
+      date: addDays(today, -step * 14 - 2),
+      waist: Math.round((98 - n * 0.8) * 10) / 10,
+      hip: Math.round((112 - n * 0.6) * 10) / 10,
+      chest: Math.round((104 - n * 0.4) * 10) / 10,
+      arm: Math.round((34 - n * 0.2) * 10) / 10,
+      thigh: Math.round((64 - n * 0.4) * 10) / 10,
+    });
+  }
+  return out;
+}

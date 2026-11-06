@@ -1,6 +1,6 @@
 import { addDays, todayISO } from "./dates";
 import { sampleByKey } from "./samples";
-import { sampleReports, sampleSymptomLogs } from "./sampleHealth";
+import { sampleMeasures, sampleReports, sampleSugar, sampleSymptomLogs } from "./sampleHealth";
 import { withPregnancySample } from "./pregnancySample";
 import { defaultShares } from "./circle";
 import { withMindSample } from "./mindSample";
@@ -58,6 +58,8 @@ export function buildSample(key: string, today = todayISO()): ProfileData {
     // Health: blood reports and 6 months of symptom logs (lib/sampleHealth.ts)
     reports: sampleReports(key, today),
     dayLogs: sampleSymptomLogs(key, today, periodStarts, cycleLength, periodLength),
+    sugar: sampleSugar(key, today),
+    measures: sampleMeasures(key, today),
   };
   // Nourish, Move and Companion: numbers, meals, steps, chat, coach plans (lib/nourishSample.ts)
   // Today, Checklist and weight: weigh-ins, water, ticks, check-in streak, medicines (lib/cycleSample.ts)

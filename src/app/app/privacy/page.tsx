@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/PageHeader";
-import { DeleteEverything, DiscreetMode, OurPromise, PinLock, TrustSection } from "@/components/settings/PrivacySections";
+import { DeleteEverything, DiscreetMode, OurPromise, PinLock } from "@/components/settings/PrivacySections";
+import { CloudBackup } from "@/components/backup/CloudBackup";
+import { TrustSection } from "@/components/backup/TrustSection";
 
 export const metadata: Metadata = { title: "Privacy" };
 
@@ -15,7 +17,8 @@ export default function Page() {
           <DiscreetMode />
         </div>
         <TrustSection />
-        {/* "Your Saheli account: encrypted cloud backup" and "Back up to a file" go here. */}
+        <CloudBackup />
+        {/* "Back up to a file" goes here. */}
         <DeleteEverything />
       </div>
     </>

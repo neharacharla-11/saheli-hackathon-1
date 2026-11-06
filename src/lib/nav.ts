@@ -36,7 +36,7 @@ export const TODAY_TABS: Tab[] = [
 export const HEALTH_TABS: Tab[] = [
   { label: "Health check", href: "/app/health" },
   { label: "My reports", href: "/app/reports" },
-  { label: "Sugar and body", href: "/app/sugar" },
+  { label: "Sugar and body", href: "/app/logs" },
   { label: "Doctor summary", href: "/app/report" },
 ];
 

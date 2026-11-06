@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>You're offline · Saheli</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px;
+    background: #FDF4F6; color: #3A1E2A; font: 16px/1.6 Figtree, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 440px; text-align: center; }
+  .word { font-family: "DM Serif Display", Georgia, serif; font-size: 44px; color: #E0679A; line-height: 1; }
+  .tag { font-family: "DM Serif Display", Georgia, serif; font-style: italic; color: #B54C7C; font-size: 13px; margin-top: 6px; }
+  h1 { font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 30px; line-height: 1.15; margin: 32px 0 8px; }
+  p { color: #8A6A76; margin: 0 0 24px; }
+  .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  a, button { display: inline-flex; align-items: center; height: 44px; padding: 0 20px; border-radius: 999px; font: 600 15px/1 inherit; text-decoration: none; cursor: pointer; }
+  button { background: #C2577A; color: #fff; border: 0; box-shadow: 0 1px 2px rgb(58 30 42 / .04), 0 8px 24px -12px rgb(58 30 42 / .12); }
+  a { background: #fff; color: #3A1E2A; border: 1px solid #EBD5DD; }
+</style>
+</head>
+<body>
+<main>
+  <div class="word" aria-label="Saheli">Saheli</div>
+  <div class="tag">Made for every version of her by her</div>
+  <h1>You're offline.</h1>
+  <p>This page hasn't been saved on your phone yet. Pages you've opened before still work, and everything you log is kept on this phone.</p>
+  <div class="row">
+    <button type="button" onclick="location.reload()">Try again</button>
+    <a href="/app">Open Today</a>
+  </div>
+</main>
+</body>
+</html>

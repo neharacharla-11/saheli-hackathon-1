@@ -5,25 +5,27 @@
 
 const DB_NAME = "saheli-files";
 const STORE = "reports";
+const PHOTOS = "photos";
 
 function open(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     if (typeof indexedDB === "undefined") return reject(new Error("No IndexedDB"));
-    const req = indexedDB.open(DB_NAME, 1);
+    const req = indexedDB.open(DB_NAME, 2);
     req.onupgradeneeded = () => {
       const db = req.result;
       if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE);
+      if (!db.objectStoreNames.contains(PHOTOS)) db.createObjectStore(PHOTOS);
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
 }
 
-async function run<T>(mode: IDBTransactionMode, fn: (s: IDBObjectStore) => IDBRequest<T>): Promise<T> {
+async function run<T>(mode: IDBTransactionMode, fn: (s: IDBObjectStore) => IDBRequest<T>, store = STORE): Promise<T> {
   const db = await open();
   return new Promise<T>((resolve, reject) => {
-    const tx = db.transaction(STORE, mode);
-    const req = fn(tx.objectStore(STORE));
+    const tx = db.transaction(store, mode);
+    const req = fn(tx.objectStore(store));
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
     tx.oncomplete = () => db.close();
@@ -40,6 +42,20 @@ export async function getReportFile(id: string): Promise<Blob | undefined> {
 
 export async function deleteReportFile(id: string): Promise<void> {
   await run("readwrite", (s) => s.delete(id));
+}
+
+/* ---------------- Progress photos (never leave the phone) ---------------- */
+
+export async function savePhoto(id: string, blob: Blob): Promise<void> {
+  await run("readwrite", (s) => s.put(blob, id), PHOTOS);
+}
+
+export async function getPhoto(id: string): Promise<Blob | undefined> {
+  return (await run<Blob | undefined>("readonly", (s) => s.get(id), PHOTOS)) ?? undefined;
+}
+
+export async function deletePhoto(id: string): Promise<void> {
+  await run("readwrite", (s) => s.delete(id), PHOTOS);
 }
 
 /* ---------------- Preparing files for reading ---------------- */

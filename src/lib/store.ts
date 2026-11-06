@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { create, useStore, type StoreApi, type UseBoundStore } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import type { CircleMember, DayLog, LabReport, LifeStage, Profile, ProfileData, ProfileMeta } from "./types";
+import type { CircleMember, DayLog, JournalEntry, LabReport, LifeStage, Measure, Profile, ProfileData, ProfileMeta, ReminderSettings, SugarReading } from "./types";
 
 export type ThemeName =
   | "rose"
@@ -110,6 +110,14 @@ export interface ProfileActions {
   updateReport: (id: string, patch: Partial<LabReport>) => void;
   removeReport: (id: string) => void;
   setShareReportsWithCoach: (on: boolean) => void;
+  addSugar: (r: SugarReading) => void;
+  removeSugar: (id: string) => void;
+  addMeasure: (m: Measure) => void;
+  removeMeasure: (id: string) => void;
+  addJournal: (e: JournalEntry) => void;
+  removeJournal: (id: string) => void;
+  setReminders: (patch: Partial<ReminderSettings>) => void;
+  setWeight: (date: string, kg: number) => void;
 }
 
 export type ProfileStore = ProfileData & ProfileActions;
@@ -128,6 +136,14 @@ export function emptyProfileData(): ProfileData {
     shareReportsWithCoach: false,
   };
 }
+
+export const DEFAULT_REMINDERS: ReminderSettings = {
+  notify: false,
+  water: true,
+  waterTimes: ["10:00", "13:00", "16:00", "19:00"],
+  periodTomorrow: true,
+  medicines: true,
+};
 
 const stores = new Map<string, UseBoundStore<StoreApi<ProfileStore>>>();
 
@@ -155,6 +171,14 @@ export function profileStore(id: string): UseBoundStore<StoreApi<ProfileStore>> 
           set((s) => ({ reports: (s.reports ?? []).map((r) => (r.id === rid ? { ...r, ...patch } : r)) })),
         removeReport: (rid) => set((s) => ({ reports: (s.reports ?? []).filter((r) => r.id !== rid) })),
         setShareReportsWithCoach: (shareReportsWithCoach) => set({ shareReportsWithCoach }),
+        addSugar: (r) => set((s) => ({ sugar: [...(s.sugar ?? []).filter((x) => x.id !== r.id), r] })),
+        removeSugar: (rid) => set((s) => ({ sugar: (s.sugar ?? []).filter((x) => x.id !== rid) })),
+        addMeasure: (m) => set((s) => ({ measures: [...(s.measures ?? []).filter((x) => x.id !== m.id), m] })),
+        removeMeasure: (mid) => set((s) => ({ measures: (s.measures ?? []).filter((x) => x.id !== mid) })),
+        addJournal: (e) => set((s) => ({ journal: [...(s.journal ?? []), e] })),
+        removeJournal: (jid) => set((s) => ({ journal: (s.journal ?? []).filter((x) => x.id !== jid) })),
+        setReminders: (patch) => set((s) => ({ reminders: { ...DEFAULT_REMINDERS, ...s.reminders, ...patch } })),
+        setWeight: (date, kg) => set((s) => ({ weights: { ...s.weights, [date]: kg } })),
       }),
       {
         name: profileKey(id),

@@ -8,6 +8,8 @@ import { countSymptoms, cycleSummary, topSymptoms } from "@/lib/healthCheck";
 import { chipHasResults } from "@/lib/healthCheck";
 import { formatValue, isOutOfRange, LAB_BY_KEY, rangeText, STATUS_LABEL } from "@/lib/labTests";
 import { STAGE_LABEL, useProfileStore } from "@/lib/store";
+import { sugarBand } from "@/lib/sugar";
+import type { SugarWhen } from "@/lib/types";
 import { loose, useHealthData } from "./useHealthData";
 
 /* Shapes other pages store (see CLAUDE.md). Read loosely; a section hides when empty. */
@@ -16,7 +18,7 @@ interface SugarLike { at: string; value: number; when?: string }
 interface MeasureLike { date: string; waist?: number; hip?: number; chest?: number; arm?: number; thigh?: number }
 interface ContraceptionLike { method?: string; pillTime?: string; packType?: number; fittedOn?: string; replaceBy?: string }
 interface PmddLike { date: string; interferes?: boolean; result?: string }
-interface HealthImportLike { steps?: Record<string, number>; sleepMin?: Record<string, number> }
+interface HealthImportLike { steps?: Record<string, number>; sleepMin?: Record<string, number>; source?: string }
 
 function long(iso: string) {
   return parseISODate(iso).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
@@ -64,7 +66,7 @@ export function DoctorSummary() {
   const sugar = (loose<SugarLike[]>(state, "sugar") ?? []).filter((s) => s && typeof s.value === "number" && s.at >= addDays(today, -14));
   const measures = (loose<MeasureLike[]>(state, "measures") ?? []).filter((m) => m && m.date).sort((a, b) => (a.date < b.date ? 1 : -1));
   const pmdd = (loose<PmddLike[]>(state, "pmdd") ?? []).filter((p) => p && p.date).sort((a, b) => (a.date < b.date ? 1 : -1));
-  const hi = loose<HealthImportLike>(state, "healthImport") ?? loose<HealthImportLike>(state, "health");
+  const hi = loose<HealthImportLike>(state, "health") ?? loose<HealthImportLike>(state, "healthImport");
   const weights = state.weights ?? {};
   const lastWeightDate = Object.keys(weights).sort().pop();
 
@@ -300,29 +302,49 @@ export function DoctorSummary() {
                 {sugar.length} readings.
                 {fasting.length ? ` Fasting average ${Math.round(avg(fasting)!)} mg/dL (${Math.min(...fasting)} to ${Math.max(...fasting)}).` : ""}
                 {after.length ? ` After meals average ${Math.round(avg(after)!)} mg/dL.` : ""}
+                {` ${Math.round((sugar.filter((r) => sugarBand(r.value, (r.when ?? "random") as SugarWhen) === "in-target").length / sugar.length) * 100)}% in target.`}
+                {sugar.some((r) => r.value < 70) ? ` Lows under 70 mg/dL: ${sugar.filter((r) => r.value < 70).length}.` : ""}
               </p>
             </Section>
           )}
 
-          {!profile.safety?.eatingConcerns && measures[0] && (
+          {!profile.safety?.eatingConcerns && stage !== "first-period" && measures[0] && (
             <Section title="Measurements">
-              <p className="tabular">
-                {shortYear(measures[0].date)}:{" "}
-                {(["waist", "hip", "chest", "arm", "thigh"] as const)
-                  .filter((k) => typeof measures[0][k] === "number")
-                  .map((k) => `${k} ${measures[0][k]} cm`)
-                  .join(", ")}
-                .
-              </p>
+              {(() => {
+                const parts = (["waist", "hip", "chest", "arm", "thigh"] as const).filter((k) => typeof measures[0][k] === "number");
+                const first = measures[measures.length - 1];
+                const label: Record<string, string> = { waist: "waist", hip: "hips", chest: "chest", arm: "upper arm", thigh: "thigh" };
+                return (
+                  <>
+                    <p className="tabular">
+                      {shortYear(measures[0].date)}: {parts.map((k) => `${label[k]} ${measures[0][k]} cm`).join(", ")}.
+                    </p>
+                    {first !== measures[0] && (
+                      <p className="tabular text-ink-soft">
+                        Change since {shortYear(first.date)}:{" "}
+                        {parts
+                          .filter((k) => typeof first[k] === "number")
+                          .map((k) => {
+                            const d = (measures[0][k] as number) - (first[k] as number);
+                            return `${label[k]} ${d > 0 ? "+" : d < 0 ? "−" : ""}${Math.abs(d).toFixed(1)} cm`;
+                          })
+                          .join(", ")}
+                        .
+                      </p>
+                    )}
+                  </>
+                );
+              })()}
             </Section>
           )}
 
           {(stepsVals.length > 0 || sleepVals.length > 0) && (
-            <Section title="Steps and sleep (last 2 weeks)">
+            <Section title="Steps and sleep (last 2 weeks, from your health app)">
               <p className="tabular">
                 {stepsVals.length ? `About ${Math.round(avg(stepsVals)!).toLocaleString("en-US")} steps a day. ` : ""}
                 {sleepVals.length ? `About ${(avg(sleepVals)! / 60).toFixed(1)} hours of sleep a night.` : ""}
               </p>
+              {hi?.source && <p className="text-sm text-ink-soft">Imported from {hi.source}.</p>}
             </Section>
           )}
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { voiceError } from "@/components/voice/VoiceInput";
 
 /* ---------------- Read aloud ---------------- */
 
@@ -151,8 +152,7 @@ export function useDictation(onText: (text: string, final: boolean) => void) {
         onText((finalText + interim).trim(), false);
       };
       rec.onerror = (e) => {
-        if (e.error === "not-allowed") setError("Please allow the microphone to talk to me.");
-        else if (e.error !== "aborted" && e.error !== "no-speech") setError("I couldn't hear that. Please try again.");
+        if (e.error !== "aborted" && e.error !== "no-speech") setError(voiceError(e.error));
       };
       rec.onend = () => {
         setListening(false);

@@ -9,6 +9,7 @@ import {
   MoodAdaptive,
   SampleCards,
 } from "@/components/settings/SettingsSections";
+import { HealthSync } from "@/components/sync/HealthSync";
 
 export const metadata: Metadata = { title: "Settings" };
 
@@ -20,7 +21,7 @@ export default function Page() {
         <HomeScreenCard />
         <LanguageCountry />
         <FamilyProfiles />
-        {/* Apple Health and Android health apps (2 columns) go here. */}
+        <HealthSync />
         <ColourTheme />
         <div className="grid items-start gap-5 md:grid-cols-2">
           <LightOrDark />

@@ -119,6 +119,14 @@ export interface ProfileData {
   reports?: LabReport[];
   /** Let her coach see report values when she asks for a plan. */
   shareReportsWithCoach?: boolean;
+  /** Blood sugar readings, value in mg/dL. */
+  sugar?: SugarReading[];
+  /** Body measurements in cm. */
+  measures?: Measure[];
+  /** Journal entries (Mind). */
+  journal?: JournalEntry[];
+  /** Phone reminder settings (Checklist). */
+  reminders?: ReminderSettings;
 }
 
 export interface ProfileMeta {
@@ -264,4 +272,41 @@ export interface CustomSupplement {
   dose?: string; // e.g. "1 tablet"
   when: string; // e.g. "After lunch"
   time?: string; // "HH:mm" for reminders
+}
+
+/* ---------- Sugar, body, journal, reminders ---------- */
+
+export type SugarWhen = "fasting" | "before" | "after" | "bedtime" | "random";
+
+export interface SugarReading {
+  id: string;
+  at: string; // local date-time, YYYY-MM-DDTHH:mm
+  value: number; // mg/dL
+  when: SugarWhen;
+}
+
+export interface Measure {
+  id: string;
+  date: string; // YYYY-MM-DD
+  waist?: number; // cm, at the belly button
+  hip?: number;
+  chest?: number;
+  arm?: number; // upper arm
+  thigh?: number;
+  /** Progress photos kept in IndexedDB on her phone. */
+  photos?: { front?: string; side?: string };
+}
+
+export interface JournalEntry {
+  id: string;
+  at: string; // ISO time
+  text: string;
+}
+
+export interface ReminderSettings {
+  notify: boolean;
+  water: boolean;
+  waterTimes: string[]; // "HH:mm"
+  periodTomorrow: boolean;
+  medicines: boolean;
 }

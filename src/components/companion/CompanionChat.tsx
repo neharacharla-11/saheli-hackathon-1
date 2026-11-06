@@ -12,7 +12,8 @@ import { pregnancyWeek } from "@/lib/pregnancy";
 import { activeProfileStore, newId, STAGE_LABEL, useProfileStore } from "@/lib/store";
 import type { ChatMessage } from "@/lib/types";
 import { Notice } from "@/components/nourish/bits";
-import { useDictation, useReadAloud, VOICE_LANGS } from "./useVoice";
+import { useDictation, useReadAloud } from "./useVoice";
+import { useVoiceLang, VOICE_LANGS, type VoiceLang } from "@/components/voice/VoiceInput";
 
 const NO_CHAT: ChatMessage[] = [];
 
@@ -36,7 +37,7 @@ export function CompanionChat() {
   const [streaming, setStreaming] = useState<ChatMessage | null>(null);
   const [error, setError] = useState("");
   const [configured, setConfigured] = useState<boolean | null>(null);
-  const [lang, setLang] = useState("en-IN");
+  const [lang, setLang] = useVoiceLang();
   const [renaming, setRenaming] = useState(false);
   const [newName, setNewName] = useState(companion);
   const listRef = useRef<HTMLDivElement>(null);
@@ -270,7 +271,7 @@ export function CompanionChat() {
                 <select
                   className="h-11 w-[74px] rounded-full bg-transparent pr-1 text-xs font-semibold text-ink sm:w-auto sm:pr-3"
                   value={lang}
-                  onChange={(e) => setLang(e.target.value)}
+                  onChange={(e) => setLang(e.target.value as VoiceLang)}
                   aria-label="Voice language"
                 >
                   {VOICE_LANGS.map((l) => (

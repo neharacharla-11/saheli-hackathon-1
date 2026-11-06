@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { DM_Serif_Display, Figtree } from "next/font/google";
 import { ThemeController, themeBootScript } from "@/components/ThemeController";
 import { Translator } from "@/components/Translator";
+import { PwaRuntime } from "@/components/pwa/PwaRuntime";
 import "./globals.css";
 
 const dmSerif = DM_Serif_Display({
@@ -64,6 +65,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
       </head>
       <body className="min-h-dvh">
+        <PwaRuntime />
         <ThemeController />
         <Translator />
         {children}
