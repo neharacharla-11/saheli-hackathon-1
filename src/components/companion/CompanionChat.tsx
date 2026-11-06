@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Check, Mic, Pencil, SendHorizontal, Sparkles, Square, Trash2, Volume2, X } from "lucide-react";
+import { Check, Loader2, Mic, Pencil, SendHorizontal, Sparkles, Square, Trash2, Volume2, X } from "lucide-react";
 import { PHASE_LABEL } from "@/lib/cycle";
 import { daysBetween, formatShort } from "@/lib/dates";
 import { addTotals } from "@/lib/foods";
@@ -13,6 +13,8 @@ import { activeProfileStore, newId, STAGE_LABEL, useProfileStore } from "@/lib/s
 import type { ChatMessage } from "@/lib/types";
 import { Notice } from "@/components/nourish/bits";
 import { useDictation, useReadAloud } from "./useVoice";
+import { chosenLovedVoice, useAutoRead, useLovedVoices, useVoiceChoice } from "./lovedVoices";
+import { VoicePicker } from "./VoicePicker";
 import { useVoiceLang, VOICE_LANGS, type VoiceLang } from "@/components/voice/VoiceInput";
 
 const NO_CHAT: ChatMessage[] = [];
@@ -42,7 +44,11 @@ export function CompanionChat() {
   const [newName, setNewName] = useState(companion);
   const listRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
-  const { speak, speakingId, supported: canSpeak } = useReadAloud();
+  const lovedVoices = useLovedVoices();
+  const voiceChoice = useVoiceChoice();
+  const autoRead = useAutoRead();
+  const lovedVoice = chosenLovedVoice(lovedVoices, voiceChoice);
+  const { speak, speakingId, loadingId, supported: canSpeak, cloning, error: voiceError, clearError } = useReadAloud(lovedVoice?.id);
 
   const onDictation = useCallback((text: string) => setInput(text), []);
   const dictation = useDictation(onDictation);
@@ -131,7 +137,11 @@ export function CompanionChat() {
     } catch (e) {
       if ((e as Error).name !== "AbortError") setError("I lost the connection. Please try again.");
     }
-    if (got.trim()) setChat([...(activeProfileStore().getState().chat ?? []), { ...reply, text: got.trim() }]);
+    if (got.trim()) {
+      setChat([...(activeProfileStore().getState().chat ?? []), { ...reply, text: got.trim() }]);
+      // Read the new reply aloud in her chosen voice, if she asked for that.
+      if (autoRead) speak(reply.id, got.trim(), lang);
+    }
     setStreaming(null);
   }
 
@@ -199,8 +209,10 @@ export function CompanionChat() {
           )}
         </div>
 
+        <VoicePicker cloning={cloning} />
+
         {/* Messages */}
-        <div ref={listRef} className="flex h-[calc(100dvh-490px)] min-h-[220px] sm:h-auto sm:max-h-[62dvh] sm:min-h-[320px] flex-col gap-3 overflow-y-auto px-4 py-5 sm:px-6" aria-live="polite">
+        <div ref={listRef} className="flex h-[calc(100dvh-545px)] min-h-[220px] sm:h-auto sm:max-h-[62dvh] sm:min-h-[320px] flex-col gap-3 overflow-y-auto px-4 py-5 sm:px-6" aria-live="polite">
           {configured === false && (
             <Notice icon={Sparkles}>
               {companion} isn&apos;t switched on yet. Once Saheli&apos;s AI is set up, you can talk here any time. Everything else in Saheli works already.
@@ -232,15 +244,32 @@ export function CompanionChat() {
                 <button
                   className="mt-1 inline-flex h-7 items-center gap-1.5 rounded-full px-2 text-xs font-semibold text-ink-soft hover:bg-surface-2 hover:text-ink"
                   onClick={() => speak(m.id, m.text, lang)}
-                  aria-pressed={speakingId === m.id}
+                  aria-pressed={speakingId === m.id || loadingId === m.id}
+                  aria-label={lovedVoice && cloning ? `Listen in ${lovedVoice.name}'s voice` : "Listen"}
                 >
-                  {speakingId === m.id ? <Square size={12} aria-hidden="true" /> : <Volume2 size={14} aria-hidden="true" />}
-                  {speakingId === m.id ? "Stop" : "Listen"}
+                  {loadingId === m.id ? (
+                    <Loader2 size={13} className="animate-spin" aria-hidden="true" />
+                  ) : speakingId === m.id ? (
+                    <Square size={12} aria-hidden="true" />
+                  ) : (
+                    <Volume2 size={14} aria-hidden="true" />
+                  )}
+                  {loadingId === m.id ? "Getting the voice" : speakingId === m.id ? "Stop" : "Listen"}
                 </button>
               )}
             </div>
           ))}
           {error && <Notice tone="error">{error}</Notice>}
+          {voiceError && (
+            <div className="flex items-start gap-2">
+              <div className="min-w-0 flex-1">
+                <Notice>{voiceError}</Notice>
+              </div>
+              <button type="button" className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-soft hover:bg-surface-2" onClick={clearError} aria-label="Dismiss">
+                <X size={14} aria-hidden="true" />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Input */}

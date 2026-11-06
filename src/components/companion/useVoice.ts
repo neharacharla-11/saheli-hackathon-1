@@ -5,18 +5,24 @@ import { voiceError } from "@/components/voice/VoiceInput";
 
 /* ---------------- Read aloud ---------------- */
 
-/** Reads text aloud with a loved one's voice (ElevenLabs, if set up) or the phone's own voice. */
-export function useReadAloud() {
+/**
+ * Reads Bestie's replies aloud: in a loved one's voice (ElevenLabs, when she has
+ * chosen one and cloning is switched on), otherwise with the phone's own voice.
+ * Any problem with the loved voice falls back to the phone's voice.
+ */
+export function useReadAloud(lovedVoiceId?: string) {
   const [speakingId, setSpeakingId] = useState<string | null>(null);
-  const [custom, setCustom] = useState(false);
+  const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [cloning, setCloning] = useState<boolean | null>(null);
+  const [error, setError] = useState("");
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     let live = true;
-    fetch("/api/tts")
+    fetch("/api/voice/speak")
       .then((r) => r.json())
-      .then((d: { configured?: boolean }) => live && setCustom(!!d.configured))
-      .catch(() => {});
+      .then((d: { configured?: boolean }) => live && setCloning(!!d.configured))
+      .catch(() => live && setCloning(false));
     return () => {
       live = false;
       window.speechSynthesis?.cancel();
@@ -29,6 +35,7 @@ export function useReadAloud() {
     audioRef.current?.pause();
     audioRef.current = null;
     setSpeakingId(null);
+    setLoadingId(null);
   }, []);
 
   const speakDevice = useCallback((id: string, text: string, lang: string) => {
@@ -50,14 +57,21 @@ export function useReadAloud() {
     synth.speak(u);
   }, []);
 
+  const useLoved = !!lovedVoiceId && cloning === true;
+
   const speak = useCallback(
     async (id: string, text: string, lang = "en-IN") => {
-      if (speakingId === id) return stop();
+      if (speakingId === id || loadingId === id) return stop();
       stop();
-      if (custom) {
-        setSpeakingId(id);
+      setError("");
+      if (useLoved) {
+        setLoadingId(id);
         try {
-          const res = await fetch("/api/tts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) });
+          const res = await fetch("/api/voice/speak", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text, voiceId: lovedVoiceId }),
+          });
           if (res.ok && res.headers.get("content-type")?.includes("audio")) {
             const url = URL.createObjectURL(await res.blob());
             const audio = new Audio(url);
@@ -66,20 +80,25 @@ export function useReadAloud() {
               URL.revokeObjectURL(url);
               setSpeakingId((cur) => (cur === id ? null : cur));
             };
+            setLoadingId(null);
+            setSpeakingId(id);
             await audio.play();
             return;
           }
+          const data = (await res.json().catch(() => ({}))) as { error?: string };
+          setError(data.error ?? "That voice couldn't load. Your phone's voice is reading instead.");
         } catch {
-          // fall back to the phone's voice
+          setError("That voice couldn't load. Your phone's voice is reading instead.");
         }
+        setLoadingId(null);
       }
       speakDevice(id, text, lang);
     },
-    [custom, speakDevice, speakingId, stop],
+    [useLoved, lovedVoiceId, loadingId, speakDevice, speakingId, stop],
   );
 
-  const supported = typeof window !== "undefined" && ("speechSynthesis" in window || custom);
-  return { speak, stop, speakingId, supported };
+  const supported = typeof window !== "undefined" && ("speechSynthesis" in window || useLoved);
+  return { speak, stop, speakingId, loadingId, supported, cloning, error, clearError: () => setError("") };
 }
 
 /* ---------------- Voice input ---------------- */
