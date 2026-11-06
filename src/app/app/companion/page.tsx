@@ -1,13 +1,8 @@
 import type { Metadata } from "next";
-import { ComingSoon, PageHeader } from "@/components/PageHeader";
+import { CompanionChat } from "@/components/companion/CompanionChat";
 
-export const metadata: Metadata = { title: "Bestie" };
+export const metadata: Metadata = { title: "Companion" };
 
 export default function Page() {
-  return (
-    <>
-      <PageHeader eyebrow="COMPANION" title="Your companion" lead="Talk it through, any time." />
-      <ComingSoon what="Bestie" />
-    </>
-  );
+  return <CompanionChat />;
 }

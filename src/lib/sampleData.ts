@@ -2,6 +2,7 @@ import { addDays, todayISO } from "./dates";
 import { sampleByKey } from "./samples";
 import { sampleReports, sampleSymptomLogs } from "./sampleHealth";
 import { withPregnancySample } from "./pregnancySample";
+import { withNourishSample } from "./nourishSample";
 import { emptyProfileData } from "./store";
 import type { CircleMember, Profile, ProfileData } from "./types";
 
@@ -54,7 +55,8 @@ export function buildSample(key: string, today = todayISO()): ProfileData {
     reports: sampleReports(key, today),
     dayLogs: sampleSymptomLogs(key, today, periodStarts, cycleLength, periodLength),
   };
-  return withPregnancySample(key, data, today);
+  // Nourish, Move and Companion: numbers, meals, steps, chat, coach plans (lib/nourishSample.ts)
+  return withNourishSample(key, withPregnancySample(key, data, today), today);
 }
 
 const CIRCLES: Record<string, [string, string, string][]> = {

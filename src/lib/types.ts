@@ -76,6 +76,16 @@ export interface CircleMember {
 
 export interface ProfileData {
   profile: Profile | null;
+  // Nourish, Move, Companion (optional so older saved data still loads)
+  food?: Record<string, FoodEntry[]>;
+  customFoods?: CustomFood[];
+  chat?: ChatMessage[];
+  grocery?: GroceryItem[];
+  groceryPlanAt?: string; // which coach plan last filled the grocery list
+  /** Imported from Apple Health or Android health apps. */
+  health?: HealthImport;
+  dietRequest?: PlanRequest | null;
+  workoutRequest?: PlanRequest | null;
   periodStarts: string[];
   dayLogs: Record<string, DayLog>;
   quickCheckins: Record<string, boolean>;
@@ -105,6 +115,103 @@ export interface ProfileMeta {
   stage: LifeStage;
 }
 
+/* ---------- Nourish, Move, Companion and coach plans ---------- */
+
+export type MealSlot = "breakfast" | "lunch" | "snack" | "dinner";
+
+export interface FoodEntry {
+  id: string;
+  foodId?: string;
+  name: string;
+  portion: string; // e.g. "1 roti (40 g)"
+  qty: number;
+  kcal: number; // totals for qty
+  protein: number;
+  carbs: number;
+  fat: number;
+  fibre: number;
+  meal: MealSlot;
+  at: string; // ISO time
+  source?: "list" | "own" | "usda" | "photo" | "plan";
+}
+
+export interface CustomFood {
+  id: string;
+  name: string;
+  portion: string;
+  kcal: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  fibre: number;
+}
+
+export interface ChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  text: string;
+  at: string;
+}
+
+export interface GroceryItem {
+  id: string;
+  name: string;
+  group?: string;
+  done: boolean;
+  fromPlan?: boolean;
+}
+
+export interface PlanMeal {
+  slot: string; // "Early morning", "Breakfast" or a day name for workouts
+  title?: string;
+  items: string;
+}
+
+export interface CoachPlan {
+  intro: string;
+  meals: PlanMeal[]; // meal by meal (diet) or day by day (workout)
+  writtenAt: string;
+}
+
+export type PlanStatus = "waiting" | "ready" | "changes";
+
+export interface PlanRequest {
+  kind: "diet" | "workout";
+  token?: string; // server token, absent for sample or offline plans
+  secret?: string;
+  sentAt: string;
+  status: PlanStatus;
+  details: PlanRequestDetails;
+  coachNote?: string; // when Neha asks for changes
+  plan?: CoachPlan;
+  seen?: boolean;
+  checkedAt?: string;
+}
+
+export interface PlanRequestDetails {
+  name: string;
+  goals: string[];
+  mealsPerDay?: number;
+  daysPerWeek?: number;
+  place?: string; // workouts: Home, Gym, Both
+  cuisine?: string;
+  allergies?: string;
+  dislikes?: string;
+  routine?: string;
+  notes?: string;
+  shareNumbers: boolean;
+  numbers?: {
+    age?: number;
+    heightCm?: number;
+    weightKg?: number;
+    activity?: string;
+    stage?: string;
+    diet?: string;
+    phase?: string;
+    country?: string;
+  };
+}
+
 export interface OtherResult {
   name: string;
   value: string;
@@ -126,4 +233,12 @@ export interface LabReport {
   fileType?: string;
   source: "upload" | "typed" | "sample";
   addedAt: string;
+}
+
+export interface HealthImport {
+  source?: string; // "Apple Health", "Health Connect"
+  steps?: Record<string, number>; // date -> steps
+  sleepMin?: Record<string, number>; // date -> minutes asleep
+  weight?: Record<string, number>; // date -> kg
+  importedAt?: string;
 }
