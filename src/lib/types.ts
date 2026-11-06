@@ -86,6 +86,12 @@ export interface ProfileData {
   health?: HealthImport;
   dietRequest?: PlanRequest | null;
   workoutRequest?: PlanRequest | null;
+  // My stage (see lib/stageTypes.ts)
+  bbt?: Record<string, number>; // date -> morning temperature in °C
+  opk?: Record<string, import("./stageTypes").OpkResult>; // date -> ovulation test
+  baby?: import("./stageTypes").BabyCare;
+  menoScores?: import("./stageTypes").MenoScore[];
+  postpartumChecks?: import("./stageTypes").PostpartumCheck[];
   periodStarts: string[];
   dayLogs: Record<string, DayLog>;
   quickCheckins: Record<string, boolean>;

@@ -209,6 +209,31 @@ export function Thali() {
 
         {/* Food list */}
         <div className="flex min-w-0 flex-col gap-5">
+          {/* On phones the plate stays in view while she scrolls the list and taps + */}
+          <div
+            className="sticky top-[72px] z-20 -mb-2 flex items-center gap-3 rounded-[20px] border border-line bg-surface/95 p-2.5 pr-3 shadow-[var(--shadow-soft)] backdrop-blur md:hidden"
+            aria-label="Your plate"
+          >
+            <PlateDrawing items={plate} mini />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-ink">
+                {plate.length ? `${plate.reduce((a, p) => a + p.qty, 0)} on your plate` : "Your plate is empty"}
+              </p>
+              <p className="truncate text-xs text-ink-soft tabular">
+                {done
+                  ? done
+                  : showNumbers
+                    ? `${fmt(totals.kcal)} kcal · ${fmt1(totals.protein)} g protein · ${fmt1(totals.fibre)} g fibre`
+                    : plate.length
+                      ? plate.map((p) => short(p.food.name)).join(", ")
+                      : "Tap + on a food below"}
+              </p>
+            </div>
+            <button className="btn btn-primary btn-sm shrink-0 px-3.5" onClick={addToMeal} disabled={!plate.length} aria-label={`Add to ${mealLabel}`}>
+              <Check size={16} aria-hidden="true" />
+              {MEALS.find((m) => m.id === meal)!.label}
+            </button>
+          </div>
           <div className="card min-w-0">
             <label className="relative block">
               <span className="sr-only">Search foods</span>
@@ -379,23 +404,23 @@ function FoodRow({ food, qty, showNumbers, onChange }: { food: FoodLike; qty: nu
 }
 
 /** The round plate with the foods on it. */
-function PlateDrawing({ items }: { items: PlateItem[] }) {
+function PlateDrawing({ items, mini = false }: { items: PlateItem[]; mini?: boolean }) {
   const shown = items.slice(0, 7);
   const extra = items.length - shown.length;
   const n = shown.length;
   return (
-    <div className="mx-auto aspect-square w-full max-w-[300px]">
+    <div className={mini ? "aspect-square w-16 shrink-0" : "mx-auto aspect-square w-full max-w-[300px]"}>
       <div
         className="relative h-full w-full rounded-full border border-line"
         style={{
           background: "radial-gradient(circle at 50% 45%, var(--surface) 0 58%, color-mix(in srgb, var(--surface-2) 70%, var(--surface)) 58.5% 100%)",
-          boxShadow: "var(--shadow-soft), inset 0 0 0 10px color-mix(in srgb, var(--surface-2) 55%, transparent)",
+          boxShadow: `var(--shadow-soft), inset 0 0 0 ${mini ? 3 : 10}px color-mix(in srgb, var(--surface-2) 55%, transparent)`,
         }}
         role="img"
         aria-label={n ? `Your plate: ${items.map((i) => `${i.qty} ${i.food.name}`).join(", ")}` : "Your plate is empty"}
       >
         <div className="absolute inset-[16%] rounded-full border border-dashed border-line" aria-hidden="true" />
-        {n === 0 && (
+        {n === 0 && !mini && (
           <p className="absolute inset-0 grid place-items-center px-14 text-center text-sm text-ink-soft">Tap + on a food to put it on your plate</p>
         )}
         {shown.map((it, i) => {
@@ -419,14 +444,14 @@ function PlateDrawing({ items }: { items: PlateItem[] }) {
               }}
               aria-hidden="true"
             >
-              <span className="line-clamp-2 text-[10px] font-semibold leading-tight text-[#3A1E2A] sm:text-[11px]">
+              <span className={`line-clamp-2 text-[10px] font-semibold leading-tight text-[#3A1E2A] sm:text-[11px] ${mini ? "hidden" : ""}`}>
                 {it.qty > 1 ? `${it.qty} ` : ""}
                 {short(it.food.name)}
               </span>
             </div>
           );
         })}
-        {extra > 0 && (
+        {extra > 0 && !mini && (
           <span className="absolute bottom-[9%] left-1/2 -translate-x-1/2 rounded-full bg-surface px-2 text-xs font-semibold text-ink-soft">+{extra} more</span>
         )}
       </div>
