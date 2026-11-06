@@ -60,4 +60,4 @@ Tests: `npm test`. Lint: `npm run lint`. Build: `npm run build`.
 
 ---
 
-Built at the Code with Claude: Women in AI Hackathon, 6 Nov 2026, by Neha Racharla and Rakshita.
+Built at the Code with Claude: Women in AI Hackathon, 6 Nov 2026, by Neha Racharla and Rakshitha Srinivasa (Co-founder).

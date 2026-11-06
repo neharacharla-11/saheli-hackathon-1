@@ -542,6 +542,9 @@ function OurStory() {
           by a women&apos;s nutritionist and fitness coach who studied AI, to be the friend every woman deserves: one that
           understands her cycle, her stage of life, her food and her family, and keeps all of it private on her own phone.
         </p>
+        <p className="mt-5 text-[15px] text-ink">
+          <span className="font-semibold">Neha Racharla</span>, Founder · <span className="font-semibold">Rakshitha Srinivasa</span>, Co-founder
+        </p>
       </div>
     </Section>
   );
@@ -559,13 +562,18 @@ function Footer() {
           </p>
         </div>
         <div>
-          <p className="label">Founder</p>
+          <p className="label">Founders</p>
           <p className="font-display mt-3 text-xl text-ink">Neha Racharla</p>
           <p className="text-[15px] font-semibold text-ink">Founder, Saheli</p>
           <ul className="mt-2 space-y-1 text-[15px] text-ink-soft">
             <li>Certified Nutritionist and Fitness Coach</li>
             <li>(Specialised in Women&apos;s Nutrition)</li>
             <li>M.S. Artificial Intelligence, Santa Clara University, Silicon Valley</li>
+          </ul>
+          <p className="font-display mt-5 text-xl text-ink">Rakshitha Srinivasa</p>
+          <p className="text-[15px] font-semibold text-ink">Co-founder, Saheli</p>
+          <ul className="mt-2 space-y-1 text-[15px] text-ink-soft">
+            <li>MS Computer Science and Engineering, Santa Clara University</li>
           </ul>
         </div>
         <div>
@@ -613,7 +621,7 @@ function Footer() {
       <div className="border-t border-line">
         <div className="mx-auto flex max-w-[1152px] flex-col gap-1 px-5 py-5 text-sm text-ink-soft sm:flex-row sm:justify-between sm:px-8">
           <p>Saheli guides, never diagnoses. Always talk to your doctor.</p>
-          <p>© 2026 Saheli. Made with love by Neha Racharla.</p>
+          <p>© 2026 Saheli. Made with love by Neha Racharla and Rakshitha Srinivasa.</p>
         </div>
       </div>
     </footer>
