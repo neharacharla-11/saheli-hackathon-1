@@ -4,15 +4,23 @@ import { createHash, randomBytes, scryptSync, timingSafeEqual } from "node:crypt
  * A tiny client for Upstash Redis over its REST API (Vercel Marketplace sets
  * KV_REST_API_URL and KV_REST_API_TOKEN). No extra package needed.
  */
+/** Upstash may set KV_REST_API_* or UPSTASH_REDIS_REST_* depending on how it was added. */
+function kvUrl(): string {
+  return (process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || "").trim();
+}
+function kvToken(): string {
+  return (process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || "").trim();
+}
+
 export function kvConfigured(): boolean {
-  return !!process.env.KV_REST_API_URL?.trim() && !!process.env.KV_REST_API_TOKEN?.trim();
+  return !!kvUrl() && !!kvToken();
 }
 
 async function command<T = unknown>(args: (string | number)[]): Promise<T> {
-  const url = process.env.KV_REST_API_URL!.replace(/\/$/, "");
+  const url = kvUrl().replace(/\/$/, "");
   const res = await fetch(url, {
     method: "POST",
-    headers: { Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`, "Content-Type": "application/json" },
+    headers: { Authorization: `Bearer ${kvToken()}`, "Content-Type": "application/json" },
     body: JSON.stringify(args),
     cache: "no-store",
     signal: AbortSignal.timeout(10_000),
