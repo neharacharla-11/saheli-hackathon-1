@@ -1,16 +1,22 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import { Languages } from "lucide-react";
-import { useAppStore, useHydrated } from "@/lib/store";
-import { LANGUAGES } from "@/i18n";
+import { getLang, LANGS, onLangChange, setLang, isLang, type LangCode } from "@/lib/i18n";
+import { useAppStore } from "@/lib/store";
 
-export { LANGUAGES };
+/** Kept for older imports. */
+export const LANGUAGES = LANGS;
 
-/** Language select (pill, 36px). Never translated itself. */
+/** Her chosen language (saved in localStorage "saheli:lang"). English during server render. */
+export function useLang(): LangCode {
+  return useSyncExternalStore(onLangChange, getLang, () => "en");
+}
+
+/** Language select (pill, 36px, translate icon). Never translated itself. */
 export function LanguagePicker({ compact = false, className = "" }: { compact?: boolean; className?: string }) {
-  const hydrated = useHydrated();
-  const language = useAppStore((s) => s.language);
-  const setLanguage = useAppStore((s) => s.setLanguage);
+  const lang = useLang();
+  const setAppLanguage = useAppStore((s) => s.setLanguage);
   return (
     <label
       className={`relative inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-line bg-surface pl-3 pr-2 text-sm text-ink ${className}`}
@@ -20,12 +26,16 @@ export function LanguagePicker({ compact = false, className = "" }: { compact?: 
       <Languages size={16} className="text-ink-soft" aria-hidden="true" />
       <span className="sr-only">Language</span>
       <select
-        value={hydrated ? language : "en"}
-        onChange={(e) => setLanguage(e.target.value)}
+        value={lang}
+        onChange={(e) => {
+          if (!isLang(e.target.value)) return;
+          setLang(e.target.value);
+          setAppLanguage(e.target.value); // voice input and older code read this
+        }}
         className={`appearance-none bg-transparent pr-1 text-sm font-medium outline-none ${compact ? "w-[4.5rem]" : ""}`}
         aria-label="Language"
       >
-        {LANGUAGES.map((l) => (
+        {LANGS.map((l) => (
           <option key={l.code} value={l.code}>
             {l.label}
           </option>

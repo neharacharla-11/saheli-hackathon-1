@@ -129,6 +129,7 @@ export function LanguageCountry() {
           <p className="mb-1.5 text-xs font-semibold text-ink-soft">Language</p>
           <LanguagePicker />
           <p className="mt-2 text-sm text-ink-soft">Saheli&apos;s words change. Your own notes stay as you wrote them.</p>
+          <p className="mt-1 text-sm text-ink-soft">Translations are a draft. Tell us if something reads oddly.</p>
         </div>
         <label className="block">
           <span className="mb-1.5 block text-xs font-semibold text-ink-soft">Country</span>
