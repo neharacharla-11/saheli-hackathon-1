@@ -54,6 +54,9 @@ export async function elevenError(res: Response | null, what: "clone" | "speak" 
     // no body
   }
   if (res.status === 401) {
+    if (detail.includes("missing_permissions")) {
+      return { status: 503, message: "The voice key needs more permissions (voices and text to speech). Bestie will use your phone's voice for now." };
+    }
     if (detail.includes("instant_voice_cloning") || detail.includes("subscription") || detail.includes("plan")) {
       return { status: 402, message: "Your ElevenLabs plan doesn't include voice cloning yet. Bestie will use your phone's voice." };
     }

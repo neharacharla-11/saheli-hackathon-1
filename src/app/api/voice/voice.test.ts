@@ -97,6 +97,13 @@ describe("voice cloning switched on", () => {
     expect((await speak.POST(new Request("http://x", { method: "POST", body: JSON.stringify({ text: "  ", voiceId: VOICE }) }))).status).toBe(400);
   });
 
+  it("explains a key that is missing permissions", async () => {
+    globalThis.fetch = vi.fn(async () => Response.json({ detail: { status: "missing_permissions", message: "missing the permission voices_write" } }, { status: 401 })) as typeof fetch;
+    const res = await clone.POST(clipForm());
+    expect(res.status).toBe(503);
+    expect((await res.json()).error).toMatch(/needs more permissions/);
+  });
+
   it("explains a plan without voice cloning", async () => {
     globalThis.fetch = vi.fn(async () => Response.json({ detail: { status: "can_not_use_instant_voice_cloning" } }, { status: 401 })) as typeof fetch;
     const res = await clone.POST(clipForm());
