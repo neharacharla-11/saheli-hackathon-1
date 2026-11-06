@@ -19,7 +19,16 @@ const figtree = Figtree({
   display: "swap",
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://saheli-hackathon-win.vercel.app";
+const LIVE_URL = "https://saheli-hackathon-win.vercel.app";
+/** A bad or missing value must never break the build: fall back to the live address. */
+const SITE_URL = (() => {
+  const v = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  try {
+    return v && /^https?:\/\//.test(v) ? new URL(v).origin : LIVE_URL;
+  } catch {
+    return LIVE_URL;
+  }
+})();
 const DESCRIPTION =
   "Every app tracks her cycle. None of them understand her. Saheli is a caring AI companion that adapts food, movement, mind and health care to how her body feels today.";
 
