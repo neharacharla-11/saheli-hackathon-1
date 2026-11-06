@@ -121,6 +121,8 @@ export interface ProfileData {
   customSupplements?: CustomSupplement[];
   /** Seconds the 10-second check-in took, by date. */
   checkinSeconds?: Record<string, number>;
+  /** Workouts she finished in guided mode (Move). */
+  workoutsDone?: import("./workoutLibrary").WorkoutDone[];
   /** Lab reports, values in Saheli's units (see lib/labTests.ts). */
   reports?: LabReport[];
   /** Let her coach see report values when she asks for a plan. */

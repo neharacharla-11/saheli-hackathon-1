@@ -84,6 +84,15 @@ export function withCycleSample(key: string, data: ProfileData, today: string): 
     secs[date] = 5 + Math.floor(rand() * 6);
   }
   out.quickCheckins = quick;
+
+  // Guided workouts: 2 so far this week and a few weeks before, so "This week" has a count.
+  if (p.stage !== "first-period") {
+    const start = addDays(today, -new Date(`${today}T12:00:00`).getDay());
+    const days = [-20, -18, -15, -13, -11, -8, -6].map((d) => addDays(start, d));
+    if (start < today) days.push(start);
+    if (addDays(start, 2) < today) days.push(addDays(start, 2));
+    out.workoutsDone = days.map((date) => ({ date, at: `${date}T07:30:00.000Z`, minutes: 30, title: "Home workout", mode: "sample", place: "home" as const }));
+  }
   // Leave today's check-in for her to do (3 taps), keeping any symptoms already logged.
   if (out.dayLogs[today]) {
     const rest = { ...out.dayLogs[today] };

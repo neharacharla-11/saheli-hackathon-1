@@ -68,3 +68,17 @@ export function toggleSymptom(symptom: string, date = todayISO()) {
     return { dayLogs: { ...s.dayLogs, [date]: { ...s.dayLogs[date], symptoms: [...cur] } } };
   });
 }
+
+/** Tick an item without toggling it off (e.g. "20 minutes of movement" after a workout). */
+export function markChecklist(date: string, id: string) {
+  set((s) => {
+    const cur = s.checklist[date] ?? [];
+    return cur.includes(id) ? {} : { checklist: { ...s.checklist, [date]: [...cur, id] } };
+  });
+}
+
+/** A finished guided workout: log it and tick "20 minutes of movement" for the day. */
+export function logWorkout(w: import("./workoutLibrary").WorkoutDone) {
+  set((s) => ({ workoutsDone: [...(s.workoutsDone ?? []), w].slice(-500) }));
+  markChecklist(w.date, "move");
+}

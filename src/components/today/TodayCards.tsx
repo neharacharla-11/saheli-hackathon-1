@@ -9,7 +9,9 @@ import { PHASE_VAR, type Phase } from "@/lib/cycle";
 import { useFoodToday } from "@/lib/myDay";
 import { coachOnlyReason, dailyTargets } from "@/lib/nutrition";
 import { useProfileStore } from "@/lib/store";
-import { buildWorkout, workoutMode } from "@/lib/workouts";
+import { buildSession, modeFor, workoutsThisWeek } from "@/lib/workoutLibrary";
+import { todayISO } from "@/lib/dates";
+import type { ProfileData } from "@/lib/types";
 
 /* ---------------- Today's food ---------------- */
 
@@ -74,13 +76,20 @@ export function FoodCard({ today, phase }: { today: string; phase: Phase | null 
 
 export function MoveCard({ phase }: { phase: Phase | null }) {
   const profile = useProfileStore((s) => s.profile);
+  const done = useProfileStore((s) => (s as ProfileData).workoutsDone);
   if (!profile) return null;
-  const w = buildWorkout(workoutMode(profile.stage, phase), "home", 30);
+  const w = buildSession(modeFor(profile.stage, phase), "home", 30);
+  const week = workoutsThisWeek(done, todayISO());
   return (
     <section className="card flex flex-col">
-      <h2 className="mb-3 flex items-center gap-2 font-semibold text-ink">
-        <Dumbbell size={18} className="text-primary-ink" aria-hidden="true" /> Move today
-      </h2>
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h2 className="flex items-center gap-2 font-semibold text-ink">
+          <Dumbbell size={18} className="text-primary-ink" aria-hidden="true" /> Move today
+        </h2>
+        <p className="tabular text-sm text-ink-soft">
+          This week: {week} workout{week === 1 ? "" : "s"}
+        </p>
+      </div>
       <p className="font-display text-[1.6rem] leading-snug text-ink">{w.title}</p>
       <p className="mt-1.5 flex-1 text-[15px] text-ink-soft">{w.line}</p>
       <Link href="/app/move" className="mt-4 inline-flex items-center gap-1.5 font-semibold text-primary-ink hover:underline">
