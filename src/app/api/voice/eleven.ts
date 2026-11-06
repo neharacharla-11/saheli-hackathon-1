@@ -14,6 +14,9 @@ export function cloningConfigured(): boolean {
 
 export const NOT_ON = "Voice cloning isn't switched on yet. Bestie will use your phone's voice for now.";
 
+export const NEEDS_VERIFICATION =
+  "ElevenLabs couldn't use this clip. This can happen when it sounds like a recording, a famous voice or a computer voice. Please record your loved one speaking live, in their own words.";
+
 /** ElevenLabs voice ids are short letters and numbers. */
 export function isVoiceId(v: unknown): v is string {
   return typeof v === "string" && /^[A-Za-z0-9]{10,40}$/.test(v);
@@ -54,6 +57,9 @@ export async function elevenError(res: Response | null, what: "clone" | "speak" 
     // no body
   }
   if (res.status === 401) {
+    if (detail.includes("voice_access_denied") || detail.includes("captcha") || detail.includes("verification")) {
+      return { status: 422, message: "ElevenLabs needs to verify this voice before it can be used, so Bestie is using your phone's voice. Try deleting it and recording your loved one speaking live." };
+    }
     if (detail.includes("missing_permissions")) {
       return { status: 503, message: "The voice key needs more permissions (voices and text to speech). Bestie will use your phone's voice for now." };
     }

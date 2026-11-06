@@ -1,4 +1,4 @@
-import { cloningConfigured, elevenError, elevenFetch, isVoiceId, json, NOT_ON, SAHELI_MARK } from "../eleven";
+import { cloningConfigured, elevenError, elevenFetch, isVoiceId, json, NEEDS_VERIFICATION, NOT_ON, SAHELI_MARK } from "../eleven";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -54,7 +54,12 @@ export async function POST(req: Request) {
   }
   const data = (await res.json()) as { voice_id?: string; requires_verification?: boolean };
   if (!isVoiceId(data.voice_id)) return json(502, { ok: false, error: "The voice service had a problem. Please try again." });
-  return json(200, { ok: true, voiceId: data.voice_id, requiresVerification: !!data.requires_verification });
+  // A voice that needs verification can't speak, so don't keep it: delete it and say why.
+  if (data.requires_verification) {
+    await elevenFetch(`/voices/${data.voice_id}`, { method: "DELETE" });
+    return json(422, { ok: false, error: NEEDS_VERIFICATION });
+  }
+  return json(200, { ok: true, voiceId: data.voice_id });
 }
 
 /** Delete a voice she added. Only voices Saheli created can be deleted here. */

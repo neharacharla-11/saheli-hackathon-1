@@ -67,7 +67,7 @@ describe("voice cloning switched on", () => {
   it("sends the clip to Instant Voice Cloning with the key on the server only, and returns the voice_id", async () => {
     const res = await clone.POST(clipForm());
     const body = await res.json();
-    expect(body).toEqual({ ok: true, voiceId: VOICE, requiresVerification: false });
+    expect(body).toEqual({ ok: true, voiceId: VOICE });
     const call = calls[0];
     expect(call.url).toBe("https://api.elevenlabs.io/v1/voices/add");
     expect((call.init?.headers as Record<string, string>)["xi-api-key"]).toBe("test-key");
@@ -95,6 +95,27 @@ describe("voice cloning switched on", () => {
     expect(JSON.parse(String(calls[0].init?.body))).toEqual({ text: "Rest today, and keep warm.", model_id: "eleven_multilingual_v2" });
     expect((await speak.POST(new Request("http://x", { method: "POST", body: JSON.stringify({ text: "Hi", voiceId: "x" }) }))).status).toBe(400);
     expect((await speak.POST(new Request("http://x", { method: "POST", body: JSON.stringify({ text: "  ", voiceId: VOICE }) }))).status).toBe(400);
+  });
+
+  it("deletes a voice that needs verification and says why", async () => {
+    globalThis.fetch = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
+      calls.push({ url: String(url), init });
+      if (String(url).endsWith("/voices/add")) return Response.json({ voice_id: VOICE, requires_verification: true });
+      return Response.json({ status: "ok" });
+    }) as typeof fetch;
+    const res = await clone.POST(clipForm());
+    expect(res.status).toBe(422);
+    expect((await res.json()).error).toMatch(/record your loved one speaking live/);
+    expect(calls.some((c) => c.init?.method === "DELETE" && c.url.endsWith(`/voices/${VOICE}`))).toBe(true);
+  });
+
+  it("explains a voice ElevenLabs won't speak with", async () => {
+    globalThis.fetch = vi.fn(async () =>
+      Response.json({ detail: { type: "authorization_error", code: "voice_access_denied", status: "detected_captcha_voice" } }, { status: 401 }),
+    ) as typeof fetch;
+    const res = await speak.POST(new Request("http://x", { method: "POST", body: JSON.stringify({ text: "Hi there", voiceId: VOICE }) }));
+    expect(res.status).toBe(422);
+    expect((await res.json()).error).toMatch(/needs to verify this voice/);
   });
 
   it("explains a key that is missing permissions", async () => {
