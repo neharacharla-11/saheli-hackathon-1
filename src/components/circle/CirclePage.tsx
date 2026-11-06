@@ -124,7 +124,7 @@ function MemberRow({ member: m, her, mode, configured }: { member: CircleMember;
     return buildPayload(store.getState(), m, today);
   }
   function link() {
-    return circleLink(window.location.origin, m, payload());
+    return circleLink(m, payload());
   }
   function sent() {
     if (m.status === "not-shared") store.getState().updateCircleMember(m.id, { status: m.token ? "synced" : "waiting" });

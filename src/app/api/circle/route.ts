@@ -1,5 +1,6 @@
 import { friendlyError, readJson } from "@/lib/server/claude";
-import { sanitizePayload, type CirclePayload } from "@/lib/circle";
+import { randomBytes } from "node:crypto";
+import { sanitizePayload, shortToken, type CirclePayload } from "@/lib/circle";
 import { hashSecret, isToken, kvConfigured, kvDel, kvGetJson, kvSetJson, randomToken, sameHash } from "@/lib/server/kv";
 
 export const dynamic = "force-dynamic";
@@ -44,9 +45,11 @@ export async function POST(req: Request) {
   const body = await readJson<{ payload?: unknown }>(req, 8_000);
   const payload = sanitizePayload(body?.payload);
   if (!payload) return friendlyError("Something was missing. Please try again.", 400);
-  const token = randomToken(12);
   const secret = randomToken(24);
   try {
+    // A short, readable token; check it isn't taken.
+    let token = shortToken((n) => randomBytes(n));
+    for (let i = 0; i < 3 && (await kvGetJson(KEY(token))); i++) token = shortToken((n) => randomBytes(n));
     await kvSetJson(KEY(token), { secretHash: hashSecret(secret), payload, updatedAt: new Date().toISOString() } satisfies CircleRecord, TTL);
     return Response.json({ ok: true, token, secret });
   } catch {

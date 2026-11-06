@@ -130,3 +130,13 @@ describe("links", () => {
     expect(decodePayload("%%%")).toBeNull();
   });
 });
+
+describe("short links", () => {
+  it("makes 8 readable characters and always uses the live site", async () => {
+    const { shortToken, circleLink, CIRCLE_SITE } = await import("./circle");
+    const t = shortToken((n) => Uint8Array.from({ length: n }, (_, i) => i * 37));
+    expect(t).toMatch(/^[a-z2-9]{8}$/);
+    expect(circleLink({ ...member, token: t }, buildPayload(data(), member, today))).toBe(`${CIRCLE_SITE}/c/${t}`);
+    expect(circleLink(member, buildPayload(data(), member, today))).toMatch(/^https:\/\/saheli-hackathon-win\.vercel\.app\/c\/local#/);
+  });
+});

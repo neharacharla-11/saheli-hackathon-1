@@ -74,5 +74,8 @@ const synced = new Set<string>();
 export function syncAllOnOpen(profileId: string) {
   if (synced.has(profileId)) return;
   synced.add(profileId);
-  for (const m of activeProfileStore().getState().circle) void syncMember(m);
+  for (const m of activeProfileStore().getState().circle) {
+    // Store switched on since this person was added: give them a short link from now on.
+    void (m.token ? syncMember(m) : circleConfigured().then((on) => on && createLink(m).then(() => undefined)));
+  }
 }

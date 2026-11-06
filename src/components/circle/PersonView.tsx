@@ -7,6 +7,7 @@ import { Logo } from "@/components/Logo";
 import { PHASE_VAR } from "@/lib/cycle";
 import {
   babyAgeLine,
+  CIRCLE_SITE,
   cycleView,
   HARDER_LINE,
   HELP_TIPS,
@@ -45,10 +46,11 @@ export function PersonPage({ payload, today }: { payload: CirclePayload | null; 
 function Missing() {
   return (
     <>
-      <h1 className="font-display text-[2.1rem] leading-[1.1] text-ink">This link isn&apos;t working</h1>
+      <h1 className="font-display text-[2.1rem] leading-[1.1] text-ink">This Circle link has ended</h1>
       <p className="mt-3 text-ink-soft">
-        It may have been removed, or copied only in part. Ask for the link again. Nothing else is shared here.
+        It may be an old link, it may have been turned off, or only part of it was copied. Nothing is wrong. Ask her to send you a fresh one.
       </p>
+      <p className="mt-2 text-ink-soft">Meanwhile, a kind message is always a good idea.</p>
       <Marketing />
     </>
   );
@@ -247,7 +249,7 @@ function StageCards({ p, today, stale }: { p: CirclePayload; today: string; stal
 
 function Marketing() {
   const [copied, setCopied] = useState(false);
-  const site = typeof window !== "undefined" ? window.location.origin : "https://saheli.app";
+  const site = CIRCLE_SITE;
   const text = "Saheli is a wellness companion that understands every stage of a woman's life. I think you'd love it.";
 
   async function share() {
@@ -268,7 +270,8 @@ function Marketing() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      /* clipboard blocked */
+      // In-app browsers (WhatsApp, Instagram) often block the clipboard.
+      window.prompt("Copy this link", site);
     }
   }
 

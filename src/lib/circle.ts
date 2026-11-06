@@ -333,9 +333,19 @@ export function decodePayload(s: string): CirclePayload | null {
   }
 }
 
-export function circleLink(origin: string, member: CircleMember, payload: CirclePayload): string {
-  if (member.token) return `${origin}/c/${member.token}`;
-  return `${origin}/c/local#${encodePayload(payload)}`;
+/** Circle links always point at the live site, even when Saheli runs locally. */
+export const CIRCLE_SITE = "https://saheli-hackathon-win.vercel.app";
+
+/** A short server link (/c/k7x2m9ab) when the store is on; otherwise a self-contained #link. */
+export function circleLink(member: CircleMember, payload: CirclePayload): string {
+  if (member.token) return `${CIRCLE_SITE}/c/${member.token}`;
+  return `${CIRCLE_SITE}/c/local#${encodePayload(payload)}`;
+}
+
+/** 8 lowercase letters and digits: short enough to read out, about 2.8 trillion possibilities. */
+export function shortToken(random: (n: number) => Uint8Array): string {
+  const abc = "abcdefghijkmnpqrstuvwxyz23456789"; // no 0/o, 1/l
+  return Array.from(random(8), (b) => abc[b % abc.length]).join("");
 }
 
 export function inviteText(her: string, to: string, link: string): string {
