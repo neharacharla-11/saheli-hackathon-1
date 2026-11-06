@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
-import { ComingSoon, PageHeader } from "@/components/PageHeader";
+import { PageHeader } from "@/components/PageHeader";
+import { DoctorSummary } from "@/components/health/DoctorSummary";
 
 export const metadata: Metadata = { title: "Doctor summary" };
 
 export default function Page() {
   return (
     <>
-      <PageHeader eyebrow="HEALTH" title="Health summary" lead="One page to take to your doctor." />
-      <ComingSoon what="Doctor summary" />
+      <div className="no-print">
+        <PageHeader eyebrow="DOCTOR SUMMARY" title="Take it to your doctor" lead="Your cycles, symptoms, patterns and results on one page." />
+      </div>
+      <DoctorSummary />
     </>
   );
 }

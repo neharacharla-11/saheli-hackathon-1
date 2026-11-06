@@ -83,6 +83,10 @@ export interface ProfileData {
   checklist: Record<string, string[]>;
   weights: Record<string, number>;
   circle: CircleMember[];
+  /** Lab reports, values in Saheli's units (see lib/labTests.ts). */
+  reports?: LabReport[];
+  /** Let her coach see report values when she asks for a plan. */
+  shareReportsWithCoach?: boolean;
 }
 
 export interface ProfileMeta {
@@ -90,4 +94,27 @@ export interface ProfileMeta {
   name: string;
   relation?: string;
   stage: LifeStage;
+}
+
+export interface OtherResult {
+  name: string;
+  value: string;
+  unit?: string;
+  range?: string;
+}
+
+export interface LabReport {
+  id: string;
+  date: string; // test date, YYYY-MM-DD
+  lab?: string;
+  /** Known tests by key (LabKey), converted to our units. */
+  values: Record<string, number>;
+  /** Everything else on the report, as printed. */
+  other: OtherResult[];
+  /** File kept in IndexedDB on her phone. */
+  fileId?: string;
+  fileName?: string;
+  fileType?: string;
+  source: "upload" | "typed" | "sample";
+  addedAt: string;
 }

@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { create, useStore, type StoreApi, type UseBoundStore } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import type { CircleMember, DayLog, LifeStage, Profile, ProfileData, ProfileMeta } from "./types";
+import type { CircleMember, DayLog, LabReport, LifeStage, Profile, ProfileData, ProfileMeta } from "./types";
 
 export type ThemeName =
   | "rose"
@@ -106,6 +106,10 @@ export interface ProfileActions {
   updateCircleMember: (id: string, patch: Partial<CircleMember>) => void;
   removeCircleMember: (id: string) => void;
   replaceAll: (data: Partial<ProfileData>) => void;
+  addReport: (report: LabReport) => void;
+  updateReport: (id: string, patch: Partial<LabReport>) => void;
+  removeReport: (id: string) => void;
+  setShareReportsWithCoach: (on: boolean) => void;
 }
 
 export type ProfileStore = ProfileData & ProfileActions;
@@ -120,6 +124,8 @@ export function emptyProfileData(): ProfileData {
     checklist: {},
     weights: {},
     circle: [],
+    reports: [],
+    shareReportsWithCoach: false,
   };
 }
 
@@ -143,6 +149,12 @@ export function profileStore(id: string): UseBoundStore<StoreApi<ProfileStore>> 
           set((s) => ({ circle: s.circle.map((m) => (m.id === mid ? { ...m, ...patch } : m)) })),
         removeCircleMember: (mid) => set((s) => ({ circle: s.circle.filter((m) => m.id !== mid) })),
         replaceAll: (data) => set({ ...emptyProfileData(), ...data }),
+        addReport: (report) =>
+          set((s) => ({ reports: [...(s.reports ?? []).filter((r) => r.id !== report.id), report] })),
+        updateReport: (rid, patch) =>
+          set((s) => ({ reports: (s.reports ?? []).map((r) => (r.id === rid ? { ...r, ...patch } : r)) })),
+        removeReport: (rid) => set((s) => ({ reports: (s.reports ?? []).filter((r) => r.id !== rid) })),
+        setShareReportsWithCoach: (shareReportsWithCoach) => set({ shareReportsWithCoach }),
       }),
       {
         name: profileKey(id),

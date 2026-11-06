@@ -1,5 +1,6 @@
 import { addDays, todayISO } from "./dates";
 import { sampleByKey } from "./samples";
+import { sampleReports, sampleSymptomLogs } from "./sampleHealth";
 import { emptyProfileData } from "./store";
 import type { CircleMember, Profile, ProfileData } from "./types";
 
@@ -43,7 +44,15 @@ export function buildSample(key: string, today = todayISO()): ProfileData {
     createdAt: addDays(today, -180),
   };
 
-  return { ...emptyProfileData(), profile, periodStarts, circle: circleFor(key, today) };
+  return {
+    ...emptyProfileData(),
+    profile,
+    periodStarts,
+    circle: circleFor(key, today),
+    // Health: blood reports and 6 months of symptom logs (lib/sampleHealth.ts)
+    reports: sampleReports(key, today),
+    dayLogs: sampleSymptomLogs(key, today, periodStarts, cycleLength, periodLength),
+  };
 }
 
 const CIRCLES: Record<string, [string, string, string][]> = {

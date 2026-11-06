@@ -1,13 +1,18 @@
 import type { Metadata } from "next";
-import { ComingSoon, PageHeader } from "@/components/PageHeader";
+import { PageHeader } from "@/components/PageHeader";
+import { HealthCheckClient } from "@/components/health/HealthCheckClient";
 
 export const metadata: Metadata = { title: "Health check" };
 
 export default function Page() {
   return (
     <>
-      <PageHeader eyebrow="HEALTH" title="What your body keeps telling you" lead="Patterns from your logs, and the tests worth asking your doctor about." />
-      <ComingSoon what="Health check" />
+      <PageHeader
+        eyebrow="HEALTH CHECK"
+        title="What your body keeps telling you"
+        lead="Saheli reads your last 3 months of logs and suggests tests worth asking your doctor about, with the reason in plain words."
+      />
+      <HealthCheckClient />
     </>
   );
 }

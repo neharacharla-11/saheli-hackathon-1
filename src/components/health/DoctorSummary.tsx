@@ -1,0 +1,351 @@
+"use client";
+
+import { useState } from "react";
+import { Printer } from "lucide-react";
+import { averageCycleLength } from "@/lib/cycle";
+import { addDays, daysBetween, formatShort, parseISODate } from "@/lib/dates";
+import { countSymptoms, cycleSummary, topSymptoms } from "@/lib/healthCheck";
+import { chipHasResults } from "@/lib/healthCheck";
+import { formatValue, isOutOfRange, LAB_BY_KEY, rangeText, STATUS_LABEL } from "@/lib/labTests";
+import { STAGE_LABEL, useProfileStore } from "@/lib/store";
+import { loose, useHealthData } from "./useHealthData";
+
+/* Shapes other pages store (see CLAUDE.md). Read loosely; a section hides when empty. */
+interface PainLike { date: string; score: number; places?: string[]; helped?: string[]; missedDay?: boolean }
+interface SugarLike { at: string; value: number; when?: string }
+interface MeasureLike { date: string; waist?: number; hip?: number; chest?: number; arm?: number; thigh?: number }
+interface ContraceptionLike { method?: string; pillTime?: string; packType?: number; fittedOn?: string; replaceBy?: string }
+interface PmddLike { date: string; interferes?: boolean; result?: string }
+interface HealthImportLike { steps?: Record<string, number>; sleepMin?: Record<string, number> }
+
+function long(iso: string) {
+  return parseISODate(iso).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+}
+
+function shortYear(iso: string) {
+  return parseISODate(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+function avg(nums: number[]) {
+  return nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : null;
+}
+
+const SCREENING_NAMES: Record<string, string> = {
+  pap: "Cervical screening (Pap/HPV)", hpv: "HPV test", cervical: "Cervical screening", mammogram: "Mammogram", bp: "Blood pressure",
+  sugar: "Blood sugar", cholesterol: "Cholesterol", eyes: "Eye test", bowel: "Bowel screening", dental: "Dental check-up",
+  bone: "Bone density", thyroid: "Thyroid", skin: "Skin check", breast: "Breast exam",
+};
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="border-t border-line pt-5 [break-inside:avoid]">
+      <h2 className="label mb-2">{title}</h2>
+      <div className="text-[15px] leading-relaxed text-ink">{children}</div>
+    </section>
+  );
+}
+
+export function DoctorSummary() {
+  const { profile, dayLogs, periodStarts, today, suggestions, latest, have, pain } = useHealthData();
+  const state = useProfileStore((s) => s);
+  const [notes, setNotes] = useState("");
+  if (!profile) return null;
+
+  const stage = profile.stage;
+  const hideWeight = profile.safety?.eatingConcerns || stage === "first-period" || stage === "pregnancy";
+  const counts = countSymptoms(dayLogs, today);
+  const symptoms = topSymptoms(dayLogs, today);
+  const cyc = cycleSummary(periodStarts, today);
+  const lastStart = [...periodStarts].filter((d) => d <= today).sort().pop();
+  const avgCycle = averageCycleLength(periodStarts.filter((d) => d >= addDays(today, -210)));
+
+  const contraception = loose<ContraceptionLike | null>(state, "contraception");
+  const screenings = loose<Record<string, string>>(state, "screenings");
+  const sugar = (loose<SugarLike[]>(state, "sugar") ?? []).filter((s) => s && typeof s.value === "number" && s.at >= addDays(today, -14));
+  const measures = (loose<MeasureLike[]>(state, "measures") ?? []).filter((m) => m && m.date).sort((a, b) => (a.date < b.date ? 1 : -1));
+  const pmdd = (loose<PmddLike[]>(state, "pmdd") ?? []).filter((p) => p && p.date).sort((a, b) => (a.date < b.date ? 1 : -1));
+  const hi = loose<HealthImportLike>(state, "healthImport") ?? loose<HealthImportLike>(state, "health");
+  const weights = state.weights ?? {};
+  const lastWeightDate = Object.keys(weights).sort().pop();
+
+  const painRecent = (pain as PainLike[]).filter((p) => p.date >= addDays(today, -180));
+  const stepsVals = Object.entries(hi?.steps ?? {}).filter(([d]) => d >= addDays(today, -14)).map(([, v]) => v);
+  const sleepVals = Object.entries(hi?.sleepMin ?? {}).filter(([d]) => d >= addDays(today, -14)).map(([, v]) => v);
+  const stressVals = Object.entries(dayLogs).filter(([d, l]) => d >= addDays(today, -90) && typeof l.stress === "number").map(([, l]) => l.stress as number);
+
+  const tests = new Map<string, boolean>();
+  for (const s of suggestions) for (const t of s.tests) tests.set(t.label, chipHasResults(t, have) || !!tests.get(t.label));
+
+  const usesCycle = !["pregnancy", "postpartum", "menopause"].includes(stage);
+  const fasting = sugar.filter((s) => s.when === "fasting").map((s) => s.value);
+  const after = sugar.filter((s) => s.when === "after").map((s) => s.value);
+
+  return (
+    <>
+      {/* Print only the summary card. */}
+      <style>{`@media print {
+        body * { visibility: hidden !important; }
+        #doctor-summary, #doctor-summary * { visibility: visible !important; }
+        #doctor-summary { position: absolute; inset: 0 auto auto 0; width: 100%; max-width: none; border: 0 !important; padding: 0 !important; box-shadow: none !important; }
+        .min-h-dvh, .h-dvh { min-height: 0 !important; height: auto !important; }
+        @page { margin: 14mm; }
+      }`}</style>
+
+      <div className="no-print mb-5 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-ink-soft">One page for your doctor. Add your questions in the notes, then print or save it as a PDF.</p>
+        <button type="button" className="btn btn-primary" onClick={() => window.print()}>
+          <Printer size={18} aria-hidden="true" /> Print or save as PDF
+        </button>
+      </div>
+
+      <article id="doctor-summary" className="theme-rose-light mx-auto max-w-[768px] rounded-[var(--radius-card)] border border-line bg-white p-6 text-ink sm:p-10">
+        <header className="mb-6">
+          <h1 className="font-display text-[2.2rem] leading-tight text-ink">Health summary</h1>
+          <p className="mt-1 font-semibold text-ink">
+            {profile.name}
+            {profile.age ? ` · ${profile.age} years` : ""} · {STAGE_LABEL[stage]}
+          </p>
+          <p className="text-sm text-ink-soft">Prepared {long(today)} with Saheli</p>
+          {(profile.heightCm || (!hideWeight && (lastWeightDate || profile.weightKg))) && (
+            <p className="mt-1 text-sm text-ink tabular">
+              {profile.heightCm ? `Height ${profile.heightCm} cm` : ""}
+              {profile.heightCm && !hideWeight && (lastWeightDate || profile.weightKg) ? " · " : ""}
+              {!hideWeight && lastWeightDate
+                ? `Weight ${weights[lastWeightDate]} kg on ${formatShort(lastWeightDate)}`
+                : !hideWeight && profile.weightKg
+                  ? `Weight ${profile.weightKg} kg`
+                  : ""}
+            </p>
+          )}
+          {profile.safety?.conditions?.length ? <p className="text-sm text-ink">Conditions she mentioned: {profile.safety.conditions.join(", ")}</p> : null}
+        </header>
+
+        <div className="space-y-5">
+          <Section title="Menstrual cycle">
+            {usesCycle ? (
+              lastStart ? (
+                <ul className="space-y-0.5">
+                  <li>Last period started {shortYear(lastStart)} (cycle day {daysBetween(lastStart, today) + 1} today).</li>
+                  {avgCycle && (
+                    <li className="tabular">
+                      Average cycle {avgCycle} days
+                      {cyc.shortest !== null && cyc.longest !== cyc.shortest ? `, ranging ${cyc.shortest} to ${cyc.longest} days` : ""}
+                      {cyc.irregular ? " (irregular)" : " (regular)"}.
+                    </li>
+                  )}
+                  {cyc.lengths.length > 0 && <li className="tabular">Recent cycle lengths: {cyc.lengths.join(", ")} days.</li>}
+                  <li className="tabular">
+                    Period usually lasts {profile.periodLength} days{counts.heavy ? `; heavy flow on ${counts.heavy} days in the last 3 months` : ""}.
+                  </li>
+                </ul>
+              ) : (
+                <p>No periods logged yet.</p>
+              )
+            ) : stage === "pregnancy" ? (
+              <p>Pregnant{profile.dueDate ? `, due ${shortYear(profile.dueDate)}` : ""}.</p>
+            ) : stage === "postpartum" ? (
+              <p>Gave birth{profile.babyBirthDate ? ` on ${shortYear(profile.babyBirthDate)}` : ""}{profile.safety?.breastfeeding ? ", breastfeeding" : ""}.</p>
+            ) : lastStart ? (
+              <p>Last period logged {shortYear(lastStart)}{cyc.irregular ? "; cycles have become irregular" : ""}.</p>
+            ) : (
+              <p>No periods logged recently.</p>
+            )}
+          </Section>
+
+          <Section title="Symptoms (last 3 months)">
+            {symptoms.length ? (
+              <ul className="grid gap-x-6 sm:grid-cols-2">
+                {symptoms.map((s) => (
+                  <li key={s.name} className="flex justify-between gap-3 border-b border-dashed border-line py-1">
+                    <span>{s.name}</span>
+                    <span className="tabular text-ink-soft">{s.days} days</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No symptoms logged.</p>
+            )}
+            <p className="mt-2 text-sm text-ink-soft tabular">Based on {counts.daysLogged} days logged.</p>
+          </Section>
+
+          <Section title="Patterns">
+            {suggestions.length ? (
+              <ul className="list-disc space-y-1 pl-5">
+                {suggestions.map((s) => (
+                  <li key={s.id}>
+                    <span className="font-semibold">{s.title}.</span> {s.reason.split(". ")[0]}.
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No patterns that need a test right now.</p>
+            )}
+          </Section>
+
+          {tests.size > 0 && (
+            <Section title="Suggested tests to discuss">
+              <ul className="grid gap-x-6 sm:grid-cols-2">
+                {[...tests.entries()].map(([label, done]) => (
+                  <li key={label} className="py-0.5">
+                    {label}
+                    {done ? <span className="text-ink-soft"> (recent result below)</span> : ""}
+                  </li>
+                ))}
+              </ul>
+            </Section>
+          )}
+
+          <Section title="Latest results">
+            {latest.length ? (
+              <div className="-mx-1 overflow-x-auto">
+                <table className="w-full min-w-[520px] text-left text-sm tabular">
+                  <thead>
+                    <tr className="text-ink-soft">
+                      <th className="px-1 py-1.5 font-semibold">Test</th>
+                      <th className="px-1 py-1.5 font-semibold">Latest</th>
+                      <th className="px-1 py-1.5 font-semibold">Date</th>
+                      <th className="px-1 py-1.5 font-semibold">Previous</th>
+                      <th className="px-1 py-1.5 font-semibold">Usual range</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {latest.map((r) => {
+                      const t = LAB_BY_KEY[r.key];
+                      const flag = isOutOfRange(r.status);
+                      const prev = r.history[0];
+                      return (
+                        <tr key={r.key} className="border-t border-line align-top">
+                          <td className="px-1 py-1.5">{t.name}</td>
+                          <td className={`px-1 py-1.5 ${flag ? "font-semibold text-[#9B1B30]" : ""}`}>
+                            {formatValue(r.key, r.value)} {t.unit}
+                            {flag ? ` (${STATUS_LABEL[r.status].toLowerCase()})` : ""}
+                          </td>
+                          <td className="px-1 py-1.5 whitespace-nowrap">{shortYear(r.date)}</td>
+                          <td className="px-1 py-1.5">{prev ? `${formatValue(r.key, prev.value)} (${formatShort(prev.date)})` : "—"}</td>
+                          <td className="px-1 py-1.5 text-ink-soft">{rangeText(r.key)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p>No reports added yet.</p>
+            )}
+          </Section>
+
+          {painRecent.length > 0 && (
+            <Section title="Pain diary">
+              {(() => {
+                const scores = painRecent.map((p) => p.score);
+                const severe = painRecent.filter((p) => p.score >= 7).length;
+                const missed = painRecent.filter((p) => p.missedDay).length;
+                const nothing = painRecent.filter((p) => p.helped?.some((h) => /nothing/i.test(h))).length;
+                const places = new Map<string, number>();
+                painRecent.forEach((p) => p.places?.forEach((pl) => places.set(pl, (places.get(pl) ?? 0) + 1)));
+                return (
+                  <ul className="space-y-0.5 tabular">
+                    <li>
+                      {painRecent.length} entries in 6 months, average {avg(scores)!.toFixed(1)} out of 10, worst {Math.max(...scores)}.
+                    </li>
+                    <li>
+                      Pain of 7 or more on {severe} days{missed ? `; missed work or school on ${missed} days` : ""}
+                      {nothing ? `; "nothing helped" ${nothing} times` : ""}.
+                    </li>
+                    {places.size > 0 && <li>Where: {[...places.keys()].join(", ")}.</li>}
+                  </ul>
+                );
+              })()}
+            </Section>
+          )}
+
+          {contraception?.method && (
+            <Section title="Contraception">
+              <p>
+                {contraception.method}
+                {contraception.packType ? `, ${contraception.packType}-day pack` : ""}
+                {contraception.pillTime ? `, taken at ${contraception.pillTime}` : ""}
+                {contraception.fittedOn ? `, fitted ${shortYear(contraception.fittedOn)}` : ""}
+                {contraception.replaceBy ? `, replace by ${shortYear(contraception.replaceBy)}` : ""}.
+              </p>
+            </Section>
+          )}
+
+          <Section title="Screenings and mood">
+            {screenings && Object.keys(screenings).length > 0 && (
+              <ul className="mb-2 grid gap-x-6 sm:grid-cols-2">
+                {Object.entries(screenings)
+                  .filter(([, d]) => typeof d === "string" && d)
+                  .map(([id, d]) => (
+                    <li key={id} className="py-0.5">
+                      {SCREENING_NAMES[id] ?? id}: <span className="tabular">{shortYear(d)}</span>
+                    </li>
+                  ))}
+              </ul>
+            )}
+            <p className="tabular">
+              Low, stressed or anxious moods on {counts.lowMood} of {counts.daysLogged} logged days in the last 3 months
+              {stressVals.length ? `; average stress ${avg(stressVals)!.toFixed(1)} out of 5` : ""}.
+            </p>
+            {pmdd[0] && (
+              <p className="mt-1">
+                Premenstrual check on {shortYear(pmdd[0].date)}: {pmdd[0].result ?? (pmdd[0].interferes ? "symptoms get in the way of daily life" : "recorded")} (a flag, not a diagnosis).
+              </p>
+            )}
+          </Section>
+
+          {sugar.length > 0 && (
+            <Section title="Sugar (last 2 weeks)">
+              <p className="tabular">
+                {sugar.length} readings.
+                {fasting.length ? ` Fasting average ${Math.round(avg(fasting)!)} mg/dL (${Math.min(...fasting)} to ${Math.max(...fasting)}).` : ""}
+                {after.length ? ` After meals average ${Math.round(avg(after)!)} mg/dL.` : ""}
+              </p>
+            </Section>
+          )}
+
+          {!profile.safety?.eatingConcerns && measures[0] && (
+            <Section title="Measurements">
+              <p className="tabular">
+                {shortYear(measures[0].date)}:{" "}
+                {(["waist", "hip", "chest", "arm", "thigh"] as const)
+                  .filter((k) => typeof measures[0][k] === "number")
+                  .map((k) => `${k} ${measures[0][k]} cm`)
+                  .join(", ")}
+                .
+              </p>
+            </Section>
+          )}
+
+          {(stepsVals.length > 0 || sleepVals.length > 0) && (
+            <Section title="Steps and sleep (last 2 weeks)">
+              <p className="tabular">
+                {stepsVals.length ? `About ${Math.round(avg(stepsVals)!).toLocaleString("en-US")} steps a day. ` : ""}
+                {sleepVals.length ? `About ${(avg(sleepVals)! / 60).toFixed(1)} hours of sleep a night.` : ""}
+              </p>
+            </Section>
+          )}
+
+          <Section title="Notes">
+            <label htmlFor="summary-notes" className="sr-only">
+              Notes and questions for your doctor
+            </label>
+            <textarea
+              id="summary-notes"
+              rows={5}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Questions for your doctor, medicines you take, anything else."
+              className="no-print w-full resize-y rounded-2xl border border-line bg-white p-3 text-[15px] text-ink"
+            />
+            <div className="hidden min-h-[120px] whitespace-pre-wrap rounded-2xl border border-line p-3 print:block">{notes}</div>
+          </Section>
+        </div>
+
+        <p className="mt-8 border-t border-line pt-4 text-center text-sm text-ink-soft">
+          Made with Saheli from what she logged on her phone. Saheli explains, it doesn&apos;t diagnose. Talk to your doctor.
+        </p>
+      </article>
+    </>
+  );
+}
