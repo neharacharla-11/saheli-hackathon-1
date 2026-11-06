@@ -33,7 +33,7 @@ export function PcosPage() {
               title: "Movement",
               icon: Dumbbell,
               points: [
-                "Strength work 2-3 times a week helps your body use insulin better.",
+                "Strength training 2-3 times a week helps your body use insulin better.",
                 "A 10-15 minute walk after meals steadies your sugar.",
                 "Any movement you enjoy counts. Consistency beats intensity.",
               ],

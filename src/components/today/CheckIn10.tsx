@@ -117,12 +117,13 @@ export function CheckIn10() {
                   role="radio"
                   aria-checked={on}
                   onClick={() => pickMood(m.id)}
-                  className={`flex h-[60px] flex-col items-center justify-center gap-0.5 rounded-2xl transition-colors ${
-                    on ? "bg-surface-2" : "hover:bg-surface-2"
+                  className={`flex h-[60px] flex-col items-center justify-center gap-0.5 rounded-2xl border transition-colors ${
+                    on ? "border-primary bg-primary" : "border-line bg-surface hover:bg-surface-2"
                   }`}
                 >
-                  <MoodFace mood={m.id} picked={on} size={28} />
-                  <span className={`text-[11px] leading-none ${on ? "font-semibold text-primary-ink" : "text-ink-soft"}`}>
+                  {/* On the filled pink tile the face keeps its light tint so it stays visible. */}
+                  <MoodFace mood={m.id} picked={false} size={28} />
+                  <span className={`text-[11px] leading-none ${on ? "font-semibold text-on-primary" : "text-ink-soft"}`}>
                     {m.label}
                   </span>
                 </button>

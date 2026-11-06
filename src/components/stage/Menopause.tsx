@@ -119,13 +119,9 @@ function LastPeriodCard() {
         <p className="text-[15px] text-ink">
           {last ? (
             <>
-              Your last logged period started on <span className="font-semibold">{formatShort(last)}</span>
-              {months !== null && months >= 1 ? `, ${months} ${months === 1 ? "month" : "months"} ago` : ""}.{" "}
-              <span className="text-ink-soft">
-                {months !== null && months >= 12
-                  ? "That's 12 months or more, so you're postmenopausal."
-                  : "Periods often get irregular now. After 12 months without one, that's menopause."}
-              </span>
+              Last period logged: <span className="font-semibold">{formatShort(last)}</span>
+              {months !== null && months >= 1 ? ` (${months} ${months === 1 ? "month" : "months"} ago)` : ""}. 12 months without a period means menopause.
+              {months !== null && months >= 12 && <span className="text-ink-soft"> That&apos;s you now, so you&apos;re postmenopausal.</span>}
             </>
           ) : (
             <>
