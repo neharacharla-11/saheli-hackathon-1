@@ -90,10 +90,10 @@ export function normaliseDict(d: Dict): Dict {
 }
 
 /** Labels built from a name. The dictionary holds the template, e.g. "Add {}": "{} जोड़ें". */
-export const PATTERNS = ["Add {}", "Remove {}", "Remove date for {}", "Chat with {}", "Talk to {}…", "Message {}"];
+export const PATTERNS = ["Add {}", "Remove {}", "Remove date for {}", "Chat with {}", "Talk to {}…", "Message {}", "{} taps · {}-day streak", "Tests to ask about: {}."];
 const PATTERN_RES = PATTERNS.map((p) => ({
   key: p,
-  re: new RegExp(`^${p.split("{}").map((s) => s.replace(/[.*+?^$()|[\]\\]/g, "\\$&")).join("(.+)")}$`),
+  re: new RegExp(`^${p.split("{}").map((s) => s.replace(/[.*+?^$()|[\]\\]/g, "\\$&")).join("(.+?)")}$`),
 }));
 
 function lookup(core: string, dict: Dict): string | null {
@@ -107,7 +107,10 @@ function lookup(core: string, dict: Dict): string | null {
   if (m && dict[m[1]]) return dict[m[1]] + m[2];
   for (const p of PATTERN_RES) {
     const pm = core.match(p.re);
-    if (pm && dict[p.key]) return dict[p.key].replace("{}", pm[1]);
+    if (pm && dict[p.key]) {
+      let i = 1;
+      return dict[p.key].replace(/\{\}/g, () => pm[i++] ?? "");
+    }
   }
   return null;
 }

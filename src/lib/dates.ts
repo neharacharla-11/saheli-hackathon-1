@@ -1,3 +1,4 @@
+import { getLang } from "./i18n";
 /** Local-date helpers. Dates are stored as YYYY-MM-DD in her own time zone. */
 
 export function toISODate(d: Date): string {
@@ -28,7 +29,16 @@ export function daysBetween(a: string, b: string): number {
   return Math.round(ms / 86_400_000);
 }
 
-export function formatLong(iso: string, locale = "en-GB"): string {
+const LOCALES: Record<string, string> = { en: "en-GB", hi: "hi-IN", mr: "mr-IN", es: "es-ES", ru: "ru-RU", ko: "ko-KR", zh: "zh-CN" };
+
+/** The locale for dates in her chosen language (English on the server and in tests). */
+export function dateLocale(fallback = "en-GB"): string {
+  if (typeof window === "undefined") return fallback;
+  const lang = getLang();
+  return lang === "en" ? fallback : (LOCALES[lang] ?? fallback);
+}
+
+export function formatLong(iso: string, locale = dateLocale()): string {
   return parseISODate(iso).toLocaleDateString(locale, {
     weekday: "long",
     day: "numeric",
@@ -37,5 +47,5 @@ export function formatLong(iso: string, locale = "en-GB"): string {
 }
 
 export function formatShort(iso: string): string {
-  return parseISODate(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return parseISODate(iso).toLocaleDateString(dateLocale("en-US"), { month: "short", day: "numeric" });
 }

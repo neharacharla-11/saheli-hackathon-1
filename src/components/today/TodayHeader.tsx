@@ -1,10 +1,13 @@
 "use client";
 
 import { cycleDay, learnedCycleLength, phaseForDay, PHASE_LABEL, PHASE_VAR } from "@/lib/cycle";
+import { useSyncExternalStore } from "react";
 import { formatLong, todayISO } from "@/lib/dates";
+import { getLang, onLangChange } from "@/lib/i18n";
 import { STAGE_LABEL, useProfileStore } from "@/lib/store";
 
 export function TodayHeader() {
+  useSyncExternalStore(onLangChange, getLang, () => "en");
   const profile = useProfileStore((s) => s.profile);
   const periodStarts = useProfileStore((s) => s.periodStarts);
   const today = todayISO();
@@ -18,7 +21,7 @@ export function TodayHeader() {
   return (
     <header className="mb-8 flex flex-wrap items-end justify-between gap-3">
       <div>
-        <p className="text-sm text-ink-soft">{formatLong(today)}</p>
+        <p className="text-sm text-ink-soft" data-no-translate>{formatLong(today)}</p>
         <h1 className="font-display text-[2.3rem] leading-[1.1] text-ink sm:text-[2.6rem]">Hello, {profile.name}</h1>
       </div>
       <span className="inline-flex h-9 items-center gap-2 rounded-full bg-surface-2 px-3.5 text-sm font-semibold text-ink">

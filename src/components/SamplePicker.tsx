@@ -68,7 +68,7 @@ export function SamplePicker({ onClose }: { onClose: () => void }) {
         {SAMPLE_GROUPS.map((g) => (
           <section key={g.id} className="mt-6">
             <h3 className="label">{g.label}</h3>
-            <div className="mt-2.5 grid gap-2.5 sm:grid-cols-2">
+            <div className="mt-2.5 grid gap-2.5 sm:grid-cols-2 sm:[&>*:last-child:nth-child(odd)]:col-span-2">
               {SAMPLES.filter((s) => s.group === g.id).map((s) => (
                 <button
                   key={s.key}
