@@ -1,0 +1,291 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-mode="dark"], [data-mode="dark"] *));
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-primary: var(--primary);
+  --color-primary-ink: var(--primary-ink);
+  --color-on-primary: var(--on-primary);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-on-accent: var(--on-accent);
+  --color-ph-period: var(--ph-period);
+  --color-ph-follicular: var(--ph-follicular);
+  --color-ph-ovulation: var(--ph-ovulation);
+  --color-ph-luteal: var(--ph-luteal);
+  --color-logo: #e0679a;
+  --color-heart: #9b1b30;
+  --color-tagline: #b54c7c;
+  --color-danger: #c62828;
+  --color-whatsapp: #25d366;
+  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-dm-serif), Georgia, serif;
+  --radius-card: 1.25rem;
+  --radius-hero: 2rem;
+  --radius-tile: 1rem;
+  --shadow-soft: 0 1px 2px rgb(58 30 42 / 0.04), 0 8px 24px -12px rgb(58 30 42 / 0.12);
+}
+
+/* ---------- Themes (light) ---------- */
+:root,
+[data-theme="rose"] {
+  --bg: #fdf4f6;
+  --surface: #ffffff;
+  --surface-2: #f6e3e9;
+  --line: #ebd5dd;
+  --ink: #3a1e2a;
+  --ink-soft: #8a6a76;
+  --primary: #c2577a;
+  --primary-ink: #a8456a;
+  --on-primary: #ffffff;
+  --accent: #8faf9b;
+  --accent-ink: #5e8a71;
+  --on-accent: #ffffff;
+  --ph-period: #c2577a;
+  --ph-follicular: #6e9c83;
+  --ph-ovulation: #e3a73a;
+  --ph-luteal: #9a87d6;
+  color-scheme: light;
+}
+[data-theme="lavender"] { --bg: #f7f4fd; --surface-2: #ece6fa; --line: #ddd5f2; --ink: #2a2340; --ink-soft: #6e6688; --primary: #7e6bc9; --primary-ink: #5e4cab; --accent: #ffb199; --accent-ink: #b4553b; }
+[data-theme="peach"] { --bg: #fff7f3; --surface-2: #ffe6dc; --line: #f2d7cc; --ink: #3a2219; --ink-soft: #8b6a5e; --primary: #c9553c; --primary-ink: #a9432d; --accent: #f4b6c8; --accent-ink: #a8456a; }
+[data-theme="sage"] { --bg: #f3faf6; --surface-2: #e1efe7; --line: #cfe2d7; --ink: #1f2e26; --ink-soft: #5e7468; --primary: #4f7563; --primary-ink: #3f6151; --accent: #f4a97a; --accent-ink: #a65a28; }
+[data-theme="ocean"] { --bg: #f5f8fb; --surface-2: #e3eef6; --line: #d2e1ec; --ink: #14263a; --ink-soft: #5a6e80; --primary: #1f6e8c; --primary-ink: #185a73; --accent: #9cc9ee; --accent-ink: #2c6a9a; }
+[data-theme="berry"] { --bg: #fffbfc; --surface-2: #f6e1ea; --line: #edd3de; --ink: #2b1520; --ink-soft: #7d5e6b; --primary: #8e2453; --primary-ink: #8e2453; --accent: #9edcc8; --accent-ink: #2e7f64; }
+[data-theme="honey"] { --bg: #fffaf0; --surface-2: #fcefd2; --line: #f0e0bc; --ink: #33251a; --ink-soft: #7d6a55; --primary: #a86e15; --primary-ink: #8a5a10; --accent: #d97a8a; --accent-ink: #a8455a; }
+[data-theme="violet"] { --bg: #faf6fd; --surface-2: #eee3f7; --line: #e0d2ee; --ink: #22142f; --ink-soft: #6e5e80; --primary: #5b2a86; --primary-ink: #5b2a86; --accent: #ff8fb1; --accent-ink: #b03a64; }
+
+/* Dark-only themes */
+[data-theme="midnight"] { --bg: #1a1426; --surface: #241c34; --surface-2: #2e2442; --line: #3e3258; --ink: #f4eefa; --ink-soft: #bbaed0; --primary: #c49bf0; --primary-ink: #d2b1f4; --on-primary: #1a1426; --accent: #ff9ec4; --accent-ink: #ffb6d2; --on-accent: #1a1426; color-scheme: dark; }
+[data-theme="night-garden"] { --bg: #13221d; --surface: #1a2e27; --surface-2: #223a31; --line: #2f4c41; --ink: #eef6f1; --ink-soft: #a9c6b8; --primary: #8fd9b6; --primary-ink: #a6e2c6; --on-primary: #13221d; --accent: #f5b7a8; --accent-ink: #f8c8bc; --on-accent: #13221d; color-scheme: dark; }
+
+/* ---------- Dark mode ---------- */
+[data-mode="dark"] {
+  --bg: #1e1418;
+  --surface: #2a1c22;
+  --surface-2: #35232b;
+  --line: #45303a;
+  --ink: #f7eaef;
+  --ink-soft: #c7a9b5;
+  --primary: #e58ba7;
+  --primary-ink: #f0a3bb;
+  --on-primary: #1e1418;
+  --accent: #a9c7b4;
+  --accent-ink: #b9d6c3;
+  --on-accent: #1e1418;
+  --ph-period: #e58ba7;
+  --ph-follicular: #8ebba2;
+  --ph-ovulation: #f0be5e;
+  --ph-luteal: #b5a6ea;
+  color-scheme: dark;
+}
+[data-mode="dark"][data-theme="lavender"] { --bg: #18141f; --surface: #221c2c; --surface-2: #2c2439; --line: #3b3150; --primary: #b3a4ec; --primary-ink: #c7bbf2; --accent: #ffc2ae; --accent-ink: #ffd0c1; }
+[data-mode="dark"][data-theme="peach"] { --bg: #1e1512; --surface: #2a1d18; --surface-2: #362520; --line: #47322a; --primary: #f0947d; --primary-ink: #f5ab98; --accent: #f4b6c8; --accent-ink: #f8c9d6; }
+[data-mode="dark"][data-theme="sage"] { --bg: #121b17; --surface: #1a2721; --surface-2: #22332b; --line: #2f4439; --primary: #8cc4a8; --primary-ink: #a4d3bb; --accent: #f4a97a; --accent-ink: #f7bd97; }
+[data-mode="dark"][data-theme="ocean"] { --bg: #101a23; --surface: #172431; --surface-2: #1e2f3f; --line: #2a3f52; --primary: #6fb8d6; --primary-ink: #8ecae2; --accent: #9cc9ee; --accent-ink: #b6d8f3; }
+[data-mode="dark"][data-theme="berry"] { --bg: #1d1218; --surface: #291a22; --surface-2: #35212c; --line: #472d3b; --primary: #e57aa8; --primary-ink: #ee96bb; --accent: #9edcc8; --accent-ink: #b5e5d6; }
+[data-mode="dark"][data-theme="honey"] { --bg: #1d1710; --surface: #282017; --surface-2: #342a1d; --line: #463828; --primary: #e7b25a; --primary-ink: #efc47c; --accent: #e6a0ac; --accent-ink: #edb6c0; }
+[data-mode="dark"][data-theme="violet"] { --bg: #18121f; --surface: #221a2c; --surface-2: #2d2239; --line: #3d2f4d; --primary: #c09ae6; --primary-ink: #d0b3ed; --accent: #ff8fb1; --accent-ink: #ffadc6; }
+
+/* ---------- Mood-adaptive colours (light mode only) ---------- */
+[data-mode="light"][data-mood="happy"] { --bg: #fffaf0; --surface-2: #fcefd2; --line: #f0e0bc; --primary: #a87a10; --primary-ink: #87610e; }
+[data-mode="light"][data-mood="calm"] { --bg: #f4f9fd; --surface-2: #e1eef8; --line: #d0e2f0; --primary: #3e7cb0; --primary-ink: #2f6693; }
+[data-mode="light"][data-mood="low"] { --bg: #fff7f3; --surface-2: #ffe6dc; --line: #f4d7cc; --primary: #c9553c; --primary-ink: #a9432d; }
+[data-mode="light"][data-mood="anxious"] { --bg: #f1faf6; --surface-2: #ddf3ea; --line: #c9e8db; --primary: #2f8a6e; --primary-ink: #256e58; }
+[data-mode="light"][data-mood="irritable"] { --bg: #f7f5f8; --surface-2: #ece8ef; --line: #ded8e3; --primary: #7c7088; --primary-ink: #665b71; }
+[data-mode="light"][data-mood="overwhelmed"] { --bg: #f3f6f8; --surface-2: #e6edf2; --line: #d6e0e7; --primary: #5f7a8c; --primary-ink: #4e6676; --ink: #2e3a44; }
+[data-mode="light"][data-mood="energetic"] { --bg: #fff5f2; --surface-2: #ffe3dc; --line: #f6d2c8; --primary: #d04b35; --primary-ink: #a93a28; }
+[data-mood="bedtime"] { --bg: #1c1830; --surface: #262140; --surface-2: #2f2950; --line: #3d3663; --ink: #f1eefb; --ink-soft: #b9b2d6; --primary: #b8a8f0; --primary-ink: #cbbff4; --on-primary: #1c1830; color-scheme: dark; }
+
+/* The Circle person page always uses the rose light theme. */
+.theme-rose-light {
+  --bg: #fdf4f6; --surface: #ffffff; --surface-2: #f6e3e9; --line: #ebd5dd; --ink: #3a1e2a; --ink-soft: #8a6a76;
+  --primary: #c2577a; --primary-ink: #a8456a; --on-primary: #ffffff; --accent: #8faf9b; --accent-ink: #5e8a71;
+}
+
+/* ---------- Base ---------- */
+html {
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  transition: background-color 0.6s ease, color 0.6s ease;
+}
+@layer base {
+  h1, h2, h3, h4 {
+    text-wrap: balance;
+  }
+  ::selection {
+    background: var(--surface-2);
+  }
+  :focus-visible {
+    outline: 2px solid var(--primary-ink);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+}
+
+/* Custom cursor: mouse and trackpad only */
+@media (pointer: fine) {
+  html {
+    cursor: url("/cursor-pointer.svg") 5 3, auto;
+  }
+  a, button, [role="button"], summary, label[for], select, input[type="checkbox"], input[type="radio"], input[type="range"], .cursor-pointer {
+    cursor: url("/cursor-pointer.svg") 5 3, pointer;
+  }
+  button:disabled, [aria-disabled="true"] {
+    cursor: url("/cursor-pointer.svg") 5 3, not-allowed;
+  }
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="button"]):not([type="submit"]), textarea {
+    cursor: text;
+  }
+}
+
+@layer components {
+  .font-display {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.005em;
+  }
+  .label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--accent-ink);
+    line-height: 1.4;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    padding: 20px;
+  }
+  @media (min-width: 640px) {
+    .card { padding: 24px; }
+  }
+  .panel {
+    background: var(--surface-2);
+    border-radius: var(--radius-card);
+    padding: 20px;
+  }
+  @media (min-width: 640px) {
+    .panel { padding: 24px; }
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 20px;
+    border-radius: 9999px;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    transition: filter 0.15s ease, transform 0.1s ease, background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+  .btn:active:not(:disabled) { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.5; }
+  .btn-lg { height: 52px; padding: 0 28px; font-size: 16px; }
+  .btn-sm { height: 36px; padding: 0 16px; font-size: 14px; }
+  .btn-primary {
+    background: var(--primary);
+    color: var(--on-primary);
+    box-shadow: var(--shadow-soft);
+  }
+  .btn-primary:hover:not(:disabled) { filter: brightness(1.05); }
+  .btn-secondary {
+    background: var(--surface);
+    color: var(--ink);
+    border: 1px solid var(--line);
+  }
+  .btn-secondary:hover:not(:disabled) { background: var(--surface-2); }
+  .btn-ghost { color: var(--ink); }
+  .btn-ghost:hover:not(:disabled) { background: var(--surface-2); }
+
+  /* Chips */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 9999px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+  .chip:hover { background: var(--surface-2); }
+  .chip[aria-pressed="true"], .chip[aria-checked="true"], .chip[data-selected="true"] {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--on-primary);
+  }
+  .chip-sm { height: 32px; padding: 0 12px; font-size: 13px; }
+
+  /* "Get help" pill */
+  .help-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 9999px;
+    background: var(--surface-2);
+    border: 1px solid color-mix(in srgb, var(--primary) 40%, transparent);
+    color: var(--primary-ink);
+    font-weight: 600;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+  .help-pill:hover {
+    background: var(--primary);
+    color: #ffffff;
+  }
+
+  /* Inputs */
+  .input {
+    width: 100%;
+    height: 48px;
+    padding: 0 14px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 16px;
+  }
+  .input::placeholder { color: var(--ink-soft); opacity: 0.8; }
+  .input:focus { outline: 2px solid var(--primary-ink); outline-offset: 1px; }
+
+  /* Sideways rows that fade at the right edge */
+  .fade-x {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(to right, #000 85%, transparent);
+    mask-image: linear-gradient(to right, #000 85%, transparent);
+  }
+  .fade-x::-webkit-scrollbar { display: none; }
+}
+
+@media print {
+  .no-print { display: none !important; }
+}
