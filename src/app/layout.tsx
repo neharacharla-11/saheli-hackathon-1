@@ -19,7 +19,7 @@ const figtree = Figtree({
   display: "swap",
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://saheli-app.vercel.app";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://saheli-hackathon-win.vercel.app";
 const DESCRIPTION =
   "Every app tracks her cycle. None of them understand her. Saheli is a caring AI companion that adapts food, movement, mind and health care to how her body feels today.";
 
@@ -37,11 +37,13 @@ export const metadata: Metadata = {
     title: "Saheli · Made for every version of her by her",
     description: DESCRIPTION,
     url: "/",
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Saheli: Made for every version of her by her. Every app tracks her cycle. None of them understand her." }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Saheli · Made for every version of her by her",
     description: DESCRIPTION,
+    images: ["/og.png"],
   },
 };
 
