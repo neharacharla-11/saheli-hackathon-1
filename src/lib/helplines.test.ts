@@ -39,3 +39,16 @@ describe("links", () => {
     expect(smsLink("+1 (555) 010-0000", "hi")).toBe("sms:+15550100000?&body=hi");
   });
 });
+
+describe("mental health lines", () => {
+  it("covers India, the US, the UK and international", async () => {
+    const { allHelplines, mentalHealthLines, HELP_COUNTRIES } = await import("./helplines");
+    expect(mentalHealthLines("IN").map((l) => l.number)).toContain("18005990019");
+    expect(mentalHealthLines("US").map((l) => l.number)).toContain("988");
+    expect(mentalHealthLines("GB").map((l) => l.number)).toContain("116123");
+    expect(mentalHealthLines("FR")[0].number).toBe("112");
+    expect(HELP_COUNTRIES.at(-1)?.name).toBe("International");
+    const nums = allHelplines("IN").map((l) => l.number);
+    expect(new Set(nums).size).toBe(nums.length);
+  });
+});

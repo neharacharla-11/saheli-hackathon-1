@@ -92,6 +92,9 @@ export interface ProfileData {
   water: Record<string, number>;
   checklist: Record<string, string[]>;
   weights: Record<string, number>;
+  // Mind (optional so older saved data still loads)
+  pmdd?: import("./mindTypes").PmddCheck[];
+  suggestions?: import("./settingsTypes").Suggestion[];
   // Pregnancy (optional so older saved data still loads)
   kicks?: import("./pregnancyTypes").KickSession[];
   bp?: import("./pregnancyTypes").BPReading[];

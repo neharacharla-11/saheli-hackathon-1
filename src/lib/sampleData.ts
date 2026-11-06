@@ -2,6 +2,8 @@ import { addDays, todayISO } from "./dates";
 import { sampleByKey } from "./samples";
 import { sampleReports, sampleSymptomLogs } from "./sampleHealth";
 import { withPregnancySample } from "./pregnancySample";
+import { defaultShares } from "./circle";
+import { withMindSample } from "./mindSample";
 import { withNourishSample } from "./nourishSample";
 import { emptyProfileData } from "./store";
 import type { CircleMember, Profile, ProfileData } from "./types";
@@ -56,7 +58,7 @@ export function buildSample(key: string, today = todayISO()): ProfileData {
     dayLogs: sampleSymptomLogs(key, today, periodStarts, cycleLength, periodLength),
   };
   // Nourish, Move and Companion: numbers, meals, steps, chat, coach plans (lib/nourishSample.ts)
-  return withNourishSample(key, withPregnancySample(key, data, today), today);
+  return withMindSample(key, withNourishSample(key, withPregnancySample(key, data, today), today), today);
 }
 
 const CIRCLES: Record<string, [string, string, string][]> = {
@@ -80,7 +82,7 @@ function circleFor(key: string, today: string): CircleMember[] {
     name,
     relation,
     phone,
-    shares: ["phase", "tips"],
+    shares: defaultShares(),
     status: i === 0 ? "waiting" : "synced",
     addedAt: addDays(today, -60),
   }));

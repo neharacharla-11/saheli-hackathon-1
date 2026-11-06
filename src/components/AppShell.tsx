@@ -6,7 +6,10 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ChevronDown, Ellipsis, Plus, Settings, ShieldCheck, Sparkles, Check } from "lucide-react";
 import { Logo } from "./Logo";
 import { GetHelpButton } from "./GetHelp";
+import { LanguagePicker } from "./LanguagePicker";
 import { SamplePicker } from "./SamplePicker";
+import { PrivacyGuard } from "./settings/PrivacyGuard";
+import { CircleSync } from "./circle/CircleSync";
 import { activeTab, BOTTOM_KEYS, NAV, navItemFor, type NavItem } from "@/lib/nav";
 import { STAGE_MENU_LABEL, useActiveId, useAppStore, useHydrated, useProfileStore } from "@/lib/store";
 
@@ -41,6 +44,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="mx-auto w-full max-w-[1024px]">
             {ready ? (
               <>
+                <PrivacyGuard />
+                <CircleSync />
                 <SampleBanner />
                 <GroupTabs pathname={pathname} />
                 {children}
@@ -66,6 +71,7 @@ function Sidebar({ pathname }: { pathname: string }) {
       <Link href="/" className="px-1" aria-label="Saheli home">
         <Logo size="md" tagline outline="var(--surface)" />
       </Link>
+      <LanguagePicker className="ml-1 mt-4 self-start" />
       <nav className="mt-7 flex flex-col gap-0.5" aria-label="Main">
         {NAV.map((item) => {
           const active = item.key === current;
