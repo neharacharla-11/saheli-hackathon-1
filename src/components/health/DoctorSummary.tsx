@@ -10,13 +10,14 @@ import { formatValue, isOutOfRange, LAB_BY_KEY, rangeText, STATUS_LABEL } from "
 import { STAGE_LABEL, useProfileStore } from "@/lib/store";
 import { sugarBand } from "@/lib/sugar";
 import type { SugarWhen } from "@/lib/types";
+import { endoFlag, methodInfo, painSummary, pillDots, SCREENINGS } from "@/lib/care";
+import type { Contraception, MethodId, PainLog } from "@/lib/careTypes";
 import { loose, useHealthData } from "./useHealthData";
 
 /* Shapes other pages store (see CLAUDE.md). Read loosely; a section hides when empty. */
-interface PainLike { date: string; score: number; places?: string[]; helped?: string[]; missedDay?: boolean }
 interface SugarLike { at: string; value: number; when?: string }
 interface MeasureLike { date: string; waist?: number; hip?: number; chest?: number; arm?: number; thigh?: number }
-interface ContraceptionLike { method?: string; pillTime?: string; packType?: number; fittedOn?: string; replaceBy?: string }
+interface ContraceptionLike { method?: string; label?: string; brand?: string; pillTime?: string; packType?: number; fittedOn?: string; replaceBy?: string }
 interface PmddLike { date: string; interferes?: boolean; result?: string }
 interface HealthImportLike { steps?: Record<string, number>; sleepMin?: Record<string, number>; source?: string }
 
@@ -48,7 +49,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 export function DoctorSummary() {
-  const { profile, dayLogs, periodStarts, today, suggestions, latest, have, pain } = useHealthData();
+  const { profile, dayLogs, periodStarts, today, suggestions, latest, have } = useHealthData();
   const state = useProfileStore((s) => s);
   const [notes, setNotes] = useState("");
   if (!profile) return null;
@@ -70,7 +71,17 @@ export function DoctorSummary() {
   const weights = state.weights ?? {};
   const lastWeightDate = Object.keys(weights).sort().pop();
 
-  const painRecent = (pain as PainLike[]).filter((p) => p.date >= addDays(today, -180));
+  // Pain diary and contraception (Care pages)
+  const painLogs = (loose<PainLog[]>(state, "pain") ?? []).filter((p) => p && typeof p.date === "string" && typeof p.score === "number").map((p) => ({ ...p, places: p.places ?? [], helped: p.helped ?? [], missedDay: !!p.missedDay }));
+  const painSum = painSummary(painLogs, today, 90);
+  const painFlag = endoFlag(painLogs, periodStarts, today, profile.periodLength);
+  const taken = loose<Record<string, boolean>>(state, "pillsTaken") ?? {};
+  const pillWeek = (() => {
+    if (!contraception?.method || !["combined", "mini"].includes(contraception.method)) return null;
+    const dots = pillDots(contraception as Contraception, taken, today, 30).filter((d) => d.state === "taken" || d.state === "missed");
+    return dots.length ? { of: dots.length, taken: dots.filter((d) => d.state === "taken").length, missed: dots.filter((d) => d.state === "missed").length } : null;
+  })();
+  const lastBreastCheck = [...(loose<string[]>(state, "breastChecks") ?? [])].sort().pop();
   const stepsVals = Object.entries(hi?.steps ?? {}).filter(([d]) => d >= addDays(today, -14)).map(([, v]) => v);
   const sleepVals = Object.entries(hi?.sleepMin ?? {}).filter(([d]) => d >= addDays(today, -14)).map(([, v]) => v);
   const stressVals = Object.entries(dayLogs).filter(([d, l]) => d >= addDays(today, -90) && typeof l.stress === "number").map(([, l]) => l.stress as number);
@@ -236,55 +247,56 @@ export function DoctorSummary() {
             )}
           </Section>
 
-          {painRecent.length > 0 && (
-            <Section title="Pain diary">
-              {(() => {
-                const scores = painRecent.map((p) => p.score);
-                const severe = painRecent.filter((p) => p.score >= 7).length;
-                const missed = painRecent.filter((p) => p.missedDay).length;
-                const nothing = painRecent.filter((p) => p.helped?.some((h) => /nothing/i.test(h))).length;
-                const places = new Map<string, number>();
-                painRecent.forEach((p) => p.places?.forEach((pl) => places.set(pl, (places.get(pl) ?? 0) + 1)));
-                return (
-                  <ul className="space-y-0.5 tabular">
-                    <li>
-                      {painRecent.length} entries in 6 months, average {avg(scores)!.toFixed(1)} out of 10, worst {Math.max(...scores)}.
-                    </li>
-                    <li>
-                      Pain of 7 or more on {severe} days{missed ? `; missed work or school on ${missed} days` : ""}
-                      {nothing ? `; "nothing helped" ${nothing} times` : ""}.
-                    </li>
-                    {places.size > 0 && <li>Where: {[...places.keys()].join(", ")}.</li>}
+          {painSum && (
+            <Section title="Pain diary, last 90 days">
+              <ul className="space-y-0.5 tabular">
+                <li>
+                  {painSum.days} days logged, average {painSum.average.toFixed(1)} out of 10, worst {painSum.worst}.
+                </li>
+                <li>
+                  Pain of 7 or more on {painSum.severeDays} {painSum.severeDays === 1 ? "day" : "days"}; missed work, college or plans on {painSum.missedDays}{" "}
+                  {painSum.missedDays === 1 ? "day" : "days"}.
+                </li>
+                {painSum.places.length > 0 && <li>Where: {painSum.places.join(", ")}.</li>}
+              </ul>
+              {painFlag.show && (
+                <div className="mt-2">
+                  <p className="font-semibold">Signs worth checking for endometriosis or adenomyosis (a flag, not a diagnosis):</p>
+                  <ul className="list-disc pl-5">
+                    {(painFlag.reasons.length ? painFlag.reasons : [`Severe pain in ${painFlag.severeCycles} different cycles`]).map((r) => (
+                      <li key={r}>{r}</li>
+                    ))}
                   </ul>
-                );
-              })()}
+                </div>
+              )}
             </Section>
           )}
 
-          {contraception?.method && (
-            <Section title="Contraception">
-              <p>
-                {contraception.method}
-                {contraception.packType ? `, ${contraception.packType}-day pack` : ""}
+          <Section title="Contraception, screenings and mood">
+            {contraception?.method && (
+              <p className="mb-2">
+                <span className="font-semibold">Contraception: </span>
+                {methodInfo(contraception.method as MethodId)?.label ?? contraception.label ?? contraception.method}
+                {contraception.brand ? ` (${contraception.brand})` : ""}
+                {contraception.packType && ["combined", "mini"].includes(contraception.method) ? `, ${contraception.packType}-day pack` : ""}
                 {contraception.pillTime ? `, taken at ${contraception.pillTime}` : ""}
-                {contraception.fittedOn ? `, fitted ${shortYear(contraception.fittedOn)}` : ""}
-                {contraception.replaceBy ? `, replace by ${shortYear(contraception.replaceBy)}` : ""}.
+                {contraception.fittedOn ? `, ${contraception.method === "injection" ? "last injection" : "fitted"} ${shortYear(contraception.fittedOn)}` : ""}
+                {contraception.replaceBy ? `, ${contraception.method === "injection" ? "next due" : "replace by"} ${shortYear(contraception.replaceBy)}` : ""}.
+                {pillWeek && ` Pills taken on ${pillWeek.taken} of the last ${pillWeek.of} pill days${pillWeek.missed ? ` (${pillWeek.missed} missed)` : ""}.`}
               </p>
-            </Section>
-          )}
-
-          <Section title="Screenings and mood">
+            )}
             {screenings && Object.keys(screenings).length > 0 && (
               <ul className="mb-2 grid gap-x-6 sm:grid-cols-2">
                 {Object.entries(screenings)
                   .filter(([, d]) => typeof d === "string" && d)
                   .map(([id, d]) => (
                     <li key={id} className="py-0.5">
-                      {SCREENING_NAMES[id] ?? id}: <span className="tabular">{shortYear(d)}</span>
+                      {SCREENINGS.find((x) => x.id === id)?.name ?? SCREENING_NAMES[id] ?? id}: <span className="tabular">{shortYear(d)}</span>
                     </li>
                   ))}
               </ul>
             )}
+            {lastBreastCheck && <p className="mb-1">Last breast self-check: {shortYear(lastBreastCheck)}.</p>}
             <p className="tabular">
               Low, stressed or anxious moods on {counts.lowMood} of {counts.daysLogged} logged days in the last 3 months
               {stressVals.length ? `; average stress ${avg(stressVals)!.toFixed(1)} out of 5` : ""}.

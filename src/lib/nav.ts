@@ -41,7 +41,7 @@ export const HEALTH_TABS: Tab[] = [
 ];
 
 export const CARE_TABS: Tab[] = [
-  { label: "Contraception", href: "/app/contraception" },
+  { label: "Contraception", href: "/app/care" },
   { label: "Screenings", href: "/app/screenings" },
   { label: "Pain diary", href: "/app/pain" },
   { label: "Intimate health", href: "/app/intimate" },
@@ -64,7 +64,7 @@ export const NAV: NavItem[] = [
   { key: "companion", label: "Bestie", href: "/app/companion", icon: MessageCircleHeart },
   { key: "stage", label: "My stage", href: "/app/stage", icon: Sprout, also: ["/app/pregnancy", "/app/birth-plan"] },
   { key: "health", label: "Health", href: "/app/health", icon: Stethoscope, tabs: HEALTH_TABS },
-  { key: "care", label: "Care", href: "/app/contraception", icon: HeartPulse, tabs: CARE_TABS },
+  { key: "care", label: "Care", href: "/app/care", icon: HeartPulse, tabs: CARE_TABS, also: ["/app/contraception"] },
   { key: "circle", label: "Circle", href: "/app/circle", icon: HeartHandshake },
   { key: "settings", label: "Settings", href: "/app/settings", icon: Settings, tabs: SETTINGS_TABS },
 ];

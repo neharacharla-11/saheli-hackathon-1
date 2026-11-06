@@ -9,6 +9,9 @@ describe("navigation", () => {
   it("maps grouped pages to their menu item and tab", () => {
     expect(navItemFor("/app/checklist")?.key).toBe("today");
     expect(navItemFor("/app/pain")?.key).toBe("care");
+    expect(navItemFor("/app/care")?.key).toBe("care");
+    expect(activeTab("/app/care")?.current.label).toBe("Contraception");
+    expect(NAV.map((n) => n.key).indexOf("care")).toBe(NAV.map((n) => n.key).indexOf("health") + 1);
     expect(navItemFor("/app/report")?.key).toBe("health");
     expect(navItemFor("/app/pregnancy")?.key).toBe("stage");
     expect(activeTab("/app/recommend")?.current.label).toBe("Recommend");

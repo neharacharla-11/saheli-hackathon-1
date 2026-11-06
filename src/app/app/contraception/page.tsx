@@ -1,13 +1,6 @@
-import type { Metadata } from "next";
-import { ComingSoon, PageHeader } from "@/components/PageHeader";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = { title: "Contraception" };
-
+/** Contraception now lives at /app/care (the first Care tab). */
 export default function Page() {
-  return (
-    <>
-      <PageHeader eyebrow="CARE" title="Your contraception" lead="Saheli explains, it doesn't prescribe." />
-      <ComingSoon what="Contraception" />
-    </>
-  );
+  redirect("/app/care");
 }
